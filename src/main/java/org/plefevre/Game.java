@@ -6,13 +6,14 @@ import org.plefevre.View.*;
 
 import java.util.ArrayList;
 
-public class Game extends Menu {
+public class Game {
 
     //TODO modal choose battle
     //TODO GUI
     //TODO BDD
     //TODO Annotation based user input validation.
 
+/*
     public static Game game = new Game();
     public Input input = new Input();
     Map map;
@@ -131,7 +132,7 @@ public class Game extends Menu {
         hero.updateEffect();
         input.reload();
 
-        map.moveMonster();
+        map.moveMonster(hero);
     }
 
     public void setRedraw(boolean redraw) {
@@ -152,5 +153,5 @@ public class Game extends Menu {
 
     public Map getMap() {
         return map;
-    }
+    }*/
 }

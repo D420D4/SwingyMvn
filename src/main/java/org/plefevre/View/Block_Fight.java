@@ -1,26 +1,24 @@
 package org.plefevre.View;
 
-import org.plefevre.*;
+import org.plefevre.ConstructLog;
 import org.plefevre.Model.Hero;
+import org.plefevre.Model.Log;
 import org.plefevre.Model.Map;
 import org.plefevre.Model.Monster;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static org.plefevre.View.Block_Inventaire.HEIGHT_CASE;
 import static org.plefevre.View.Block_Inventaire.WIDTH_CASE;
 
 public class Block_Fight extends BlockRPG {
-    public Monster monster = null;
-    int selected_button = 0;
+    private Monster monster = null;
+    private int selected = 0;
+    private Log log;
 
-    ArrayList<String> output = new ArrayList<>();
-    ArrayList<byte[]> colors = new ArrayList<>();
-
-    public Block_Fight(int x, int y, int w, int h) {
+    public Block_Fight(int x, int y, int w, int h, Log log) {
         super(x, y, w, h);
 
         rx = x;
@@ -30,11 +28,11 @@ public class Block_Fight extends BlockRPG {
 
         useColor = true;
         focus = true;
+        this.log = log;
     }
 
     @Override
-    public char[][] draw() {
-        Map map = Game.game.getMap();
+    public char[][] draw(Map map, Hero hero) {
 
         buffer = new char[rh][rw];
         color = new byte[rh][rw];
@@ -54,10 +52,9 @@ public class Block_Fight extends BlockRPG {
             buffer[i][x1] = '│';
             buffer[i][x2] = '│';
         }
-        if (focus) gestionFocus();
 
         drawMonster(0);
-        drawHero(x2);
+        drawHero(hero, x2);
         drawButtons(x2, 30);
         drawLogs(x1);
 
@@ -72,14 +69,14 @@ public class Block_Fight extends BlockRPG {
         ArrayList<String> lines = new ArrayList<>();
         ArrayList<byte[]> linesCol = new ArrayList<>();
 
-        for (int i = 0; i < output.size(); i++) {
-            for (int j = 0; j < output.get(i).length(); j += len_line) {
-                String sub = output.get(i).substring(j, min(j + len_line, output.get(i).length()));
+        for (int i = 0; i < log.getOutput().size(); i++) {
+            for (int j = 0; j < log.getOutput().get(i).length(); j += len_line) {
+                String sub = log.getOutput().get(i).substring(j, min(j + len_line, log.getOutput().get(i).length()));
                 if (j > 0)
                     sub = "  " + sub;
                 lines.add(sub);
                 byte[] b = new byte[sub.length()];
-                for (int k = j == 0 ? 0 : 2; k < b.length; k++) b[k] = colors.get(i)[j + k - (j == 0 ? 0 : 2)];
+                for (int k = j == 0 ? 0 : 2; k < b.length; k++) b[k] = log.getColors().get(i)[j + k - (j == 0 ? 0 : 2)];
                 linesCol.add(b);
             }
         }
@@ -92,153 +89,13 @@ public class Block_Fight extends BlockRPG {
         }
     }
 
-    private void gestionFocus() {
-        Input input = Game.game.input;
-        input.setListen_tap(false);
-        input.setListen_x(0);
-        input.setListen_y(Game.game.getRpgInterface().getH());
-
-//        if (input.touch == 1) Game.game.hero.move(0, -1);
-//        if (input.touch == 2) Game.game.hero.move(0, 1);
-
-        if (input.getTouch() == 3) selected_button++;
-        if (input.getTouch() == 4) selected_button--;
-        if (input.getTouch() == 5) one_move();
 
 
-        if (selected_button < 0)
-            selected_button = 2;
-        selected_button %= 3;
-
-    }
-
-    private void one_move() {
-        int moveMonster = (int) (Math.random() * 3);
-        Hero hero = Game.game.getHero();
-        ConstructLog log = new ConstructLog();
-
-        if (monster.getMana() < 10) moveMonster = 2;
-
-        else if (monster.getMana() >= monster.getMaxMana() * 0.9 && moveMonster == 2)
-            moveMonster = (int) (Math.random() * 2);
-
-
-        if (moveMonster == 2) {
-            monster.setMana(monster.getMana() + 5 + monster.getLvl() * 2);
-
-            log.clean();
-            log.add(monster.getName(), (byte) -1);
-            log.add(" charges its mana.", (byte) 0);
-            addTextColor(log);
-        }
-
-        if (selected_button == 2) {
-            hero.setMana(hero.getMana() + 10 + hero.getLvl() * 3);
-
-            log.clean();
-            log.add(hero.getName(), (byte) -2);
-            log.add(" charges its mana.", (byte) 0);
-            addTextColor(log);
-        }
-
-
-        if (selected_button == 0) {
-            int degat = hero.getAttackFight();
-            int defense = (int) ((int) monster.getDefense() * 0.2);
-            if (moveMonster == 1) defense = (int) (monster.getDefense() + (4 + monster.getLvl() / 2) * (Math.random() - 0.5));
-            int mana_consom = (int) (degat * 0.8);
-
-            mana_consom = min(mana_consom, hero.getMaxMana() / 4);
-
-            log.clean();
-            log.add(hero.getName(), (byte) -2);
-            log.add(" attacks and deals ", (byte) 0);
-            log.add(degat + "", (byte) -1);
-            log.add(" but ", (byte) 0);
-            log.add(monster.getName(), (byte) -1);
-            log.add(" block ", (byte) 0);
-            log.add(defense + "", (byte) -2);
-            log.add(" and get finally ", (byte) 0);
-            log.add(max(0, degat - defense) + "", (byte) -1);
-            log.add(" damage ", (byte) 0);
-            addTextColor(log);
-
-            if (hero.removeMana(mana_consom)) {
-                degat = max(0, degat - defense);
-                monster.removePv( degat);
-            } else {
-                log.clean();
-                log.add(hero.getName(), (byte) -2);
-                log.add(" has not enought mana.", (byte) 0);
-                addTextColor(log);
-            }
-        }
-
-        if (moveMonster == 0 && monster.getPv() > 0) {
-            int degat = (int) (monster.getAttack() + (4 + monster.getLvl() / 2) * (Math.random() - 0.5));
-            int defense = (int) ((int) hero.getDefense() * 0.2);
-            if (selected_button == 1) {
-                defense = hero.getDefenseFight();
-            }
-
-            int mana_consom = (int) (degat * 0.75);
-
-
-            if (monster.getMana() >= mana_consom) {
-                log.clean();
-                log.add(monster.getName(), (byte) -1);
-                log.add(" attacks and deals ", (byte) 0);
-                log.add(degat + "", (byte) -1);
-                log.add(" but ", (byte) 0);
-                log.add(hero.getName(), (byte) -2);
-                log.add(" block ", (byte) 0);
-                log.add(defense + "", (byte) -2);
-                log.add(" and get finally ", (byte) 0);
-                log.add(max(0, degat - defense) + "", (byte) -1);
-                log.add(" damage ", (byte) 0);
-                addTextColor(log);
-
-                monster.removeMana(mana_consom);
-                degat = max(0, degat - defense);
-                hero.removePv(degat);
-
-            } else {
-                log.clean();
-                log.add(monster.getName(), (byte) -1);
-                log.add(" has not enought mana.", (byte) 0);
-                addTextColor(log);
-            }
-        }
-
-
-        if (hero.getPv() <= 0) {
-            Game.game.input.reload();
-            Game.game.getRpgInterface().setModal(new Block_Defeat());
-        }
-        if (monster.getPv() <= 0) {
-            ArrayList<Artifact> artifacts = monster.getArtifact();
-            int xp = monster.xpGet();
-
-            hero.addXp(xp);
-            for (Artifact artifact : artifacts) {
-                hero.addToInventory(artifact);
-            }
-
-            Game.game.input.reload();
-            Block_Victory modal = new Block_Victory();
-            modal.xp = xp;
-            modal.artifacts = artifacts;
-            Game.game.getRpgInterface().setModal(modal);
-        }
-
-
-    }
-
-    private void drawHero(int xs) {
+    private void drawHero(Hero hero, int xs) {
         int sx;
         int sy;
         int y;
-        Hero hero = Game.game.getHero();
+
         String asciiArt;
         asciiArt = hero.getAsciiArt();
 
@@ -331,9 +188,9 @@ public class Block_Fight extends BlockRPG {
         int rw9 = rw / 9;
 
 
-        drawButton(buffer, color, (int) (xs + rw9 * 0.1), ys, (int) (rw9 * .8), "Attack", (byte) (selected_button == 0 ? -17 : -64));
-        drawButton(buffer, color, (int) (xs + rw9 * 1.1), ys, (int) (rw9 * .8), "Block", (byte) (selected_button == 1 ? -17 : -64));
-        drawButton(buffer, color, (int) (xs + rw9 * 2.1), ys, (int) (rw9 * .8), "Charge", (byte) (selected_button == 2 ? -17 : -64));
+        drawButton(buffer, color, (int) (xs + rw9 * 0.1), ys, (int) (rw9 * .8), "Attack", (byte) (selected == 0 ? -17 : -64));
+        drawButton(buffer, color, (int) (xs + rw9 * 1.1), ys, (int) (rw9 * .8), "Block", (byte) (selected == 1 ? -17 : -64));
+        drawButton(buffer, color, (int) (xs + rw9 * 2.1), ys, (int) (rw9 * .8), "Charge", (byte) (selected == 2 ? -17 : -64));
     }
 
     private void drawMonster(int xs) {
@@ -381,11 +238,19 @@ public class Block_Fight extends BlockRPG {
     }
 
     public void addTextColor(String txt, byte[] col) {
-        output.add(txt);
-        colors.add(col);
+        log.getOutput().add(txt);
+        log.getColors().add(col);
     }
 
     private void addTextColor(ConstructLog log) {
         addTextColor(log.getString(), log.getColor());
+    }
+
+    public void setMonster(Monster monster) {
+        this.monster = monster;
+    }
+
+    public void setSelected(int selected) {
+        this.selected = selected;
     }
 }

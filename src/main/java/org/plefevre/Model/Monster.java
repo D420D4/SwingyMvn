@@ -1,9 +1,6 @@
 package org.plefevre.Model;
 
 
-import org.plefevre.Artifact;
-import org.plefevre.ArtifactLibrary;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;

@@ -1,7 +1,9 @@
 package org.plefevre.View;
 
-import org.plefevre.Artifact;
-import org.plefevre.ArtifactLibrary;
+import org.plefevre.Model.Artifact;
+import org.plefevre.Model.ArtifactLibrary;
+import org.plefevre.Model.Hero;
+import org.plefevre.Model.Map;
 
 import java.util.List;
 
@@ -16,7 +18,7 @@ public class Block_All_Artifact extends BlockRPG {
     }
 
 
-    public char[][] draw() {
+    public char[][] draw(Map map, Hero hero) {
         buffer = new char[rh][rw];
         color = new byte[rh][rw];
 

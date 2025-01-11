@@ -2,14 +2,17 @@ package org.plefevre.View;
 
 import org.plefevre.Animation;
 import org.plefevre.Color;
-import org.plefevre.Smiley;
+import org.plefevre.Model.Hero;
+import org.plefevre.Model.Map;
 import org.plefevre.Tools;
 
 import java.util.ArrayList;
 
 import static java.lang.Math.max;
-import static org.plefevre.Smiley.smileyMap;
+
+import static org.plefevre.Controller.FocusController.*;
 import static org.plefevre.TerminalSize.getTerminalSize;
+import static org.plefevre.View.Smiley.smileyMap;
 
 public class RPGInterface {
     ArrayList<BlockRPG> blockRPGS;
@@ -32,8 +35,8 @@ public class RPGInterface {
         h = size[0];
         w = size[1];
 
-        if (h < 65 || w < 274) {
-            System.out.println("Screen too small. Press any touch when resized.");
+        if (h < 65 || w < 272) {
+            System.out.println("Screen too small. Press any touch when resized. (current : " + h + ";" + w + ", needed : 65;272)");
             return;
         }
         loaded = true;
@@ -60,12 +63,14 @@ public class RPGInterface {
 //        System.out.println("Width_bloc: " + Tools.arrToString(width_bloc));
 //        System.out.println("height_bloc: " + height_bloc);
 
-
     }
 
-    public void draw() {
+    public void draw(Map map, Hero hero) {
         char[][] buffer = new char[h][w];
         byte[][] color = new byte[h][w];
+
+        if (!loaded)
+            return;
 
         for (int i = 0; i < h; i++) {
             for (int j = 0; j < w; j++) color[i][j] = 0;
@@ -75,7 +80,7 @@ public class RPGInterface {
             int x = bc.getX() * w / width_bloc[bc.getY()];
             int y = bc.getY() * h / height_bloc;
 
-            char[][] buf = bc.draw();
+            char[][] buf = bc.draw(map, hero);
             byte[][] col = bc.color();
 
             for (int i = 0; i < buf.length; i++) System.arraycopy(buf[i], 0, buffer[y + i], x, buf[i].length);
@@ -87,7 +92,7 @@ public class RPGInterface {
             int x = (w - modal.getRw()) / 2;
             int y = (h - modal.getRh()) / 2;
 
-            char[][] buf = modal.draw();
+            char[][] buf = modal.draw(map, hero);
             if (modal == null)
                 return;
             byte[][] col = modal.color();
@@ -181,6 +186,28 @@ public class RPGInterface {
 
     public BlockRPG getModal() {
         return modal;
+    }
+
+    public ArrayList<BlockRPG> getBlockRPGS() {
+        return blockRPGS;
+    }
+
+    public void setBlockRPGS(ArrayList<BlockRPG> blockRPGS) {
+        this.blockRPGS = blockRPGS;
+    }
+
+    public boolean isLoaded() {
+        return loaded;
+    }
+
+    public void setFocus(int idFocus) {
+        for (int i = 0; i < blockRPGS.size(); i++) blockRPGS.get(i).setFocus(false);
+
+        for (int i = 0; i < blockRPGS.size(); i++) {
+            if (blockRPGS.get(i) instanceof Block_Map && idFocus == FOCUS_MAP) blockRPGS.get(i).setFocus(true);
+            if (blockRPGS.get(i) instanceof Block_Log && idFocus == FOCUS_LOG) blockRPGS.get(i).setFocus(true);
+            if (blockRPGS.get(i) instanceof Block_Inventaire && idFocus == FOCUS_INVENTORY) blockRPGS.get(i).setFocus(true);
+        }
     }
 }
 

@@ -1,6 +1,7 @@
-package org.plefevre;
+package org.plefevre.Model;
 
-import org.plefevre.Model.Hero;
+import org.plefevre.Effect;
+import org.plefevre.Game;
 
 import java.util.ArrayList;
 
@@ -20,7 +21,7 @@ public class Artifact {
     private int attack;
     private int defense;
 
-    public Artifact(String name, int type, int lvl) {
+    public Artifact(String name, int type, int lvl, Hero hero) {
         this.name = name;
         this.type = type;
         setLvl(lvl);
@@ -90,7 +91,7 @@ public class Artifact {
         this.type = type;
     }
 
-    public void setLvl(int lvl) {
+    public void setLvl(int lvl ) {
         this.lvl = lvl;
 
         setAttack();
@@ -143,14 +144,7 @@ public class Artifact {
         if (type == 1)
             attack = (int) (lvl * (2 + Math.random() * 0.5));
 
-        if (!Game.game.hero.className.equalsIgnoreCase("mage") && class_destination == Hero.CLASS_MAGE)
-            attack*= 0.6f;
 
-        if (!Game.game.hero.className.equalsIgnoreCase("archey") && class_destination == Hero.CLASS_ARCHER)
-            attack*= 0.6f;
-
-        if (!Game.game.hero.className.equalsIgnoreCase("warrior") && class_destination == Hero.CLASS_WARRIOR)
-            attack*= 0.6f;
     }
 
     public void setDefense() {
@@ -158,53 +152,65 @@ public class Artifact {
         if (type == 3) defense = (int) (lvl * (1 + Math.random() * 0.25));
     }
 
-    public int getAttack() {
-        return attack;
+    public int getAttack(Hero hero) {
+        float att = attack;
+
+
+        if (!hero.getClassName().equalsIgnoreCase("mage") && class_destination == Hero.CLASS_MAGE)
+            att*= 0.6f;
+
+        if (!hero.getClassName().equalsIgnoreCase("archey") && class_destination == Hero.CLASS_ARCHER)
+            att*= 0.6f;
+
+        if (!hero.getClassName().equalsIgnoreCase("warrior") && class_destination == Hero.CLASS_WARRIOR)
+            att*= 0.6f;
+
+        return (int) att;
     }
 
-    public int getDefense() {
+    public int getDefense(Hero hero) {
         return defense;
     }
 
-    public void use() {
+    public void use(Hero hero) {
         if (type == 4) {
-            if (name.equalsIgnoreCase("Minor Health Potion")) Game.game.hero.addPV(25);
-            if (name.equalsIgnoreCase("Minor Mana Potion")) Game.game.hero.addMana(25);
-            if (name.equalsIgnoreCase("Minor Attack Potion")) Game.game.hero.addEffect(new Effect(20, 3, 0));
-            if (name.equalsIgnoreCase("Minor Defense Potion")) Game.game.hero.addEffect(new Effect(20, 0, 3));
-            if (name.equalsIgnoreCase("Minor Experience Potion")) Game.game.hero.addXp(2000);
+            if (name.equalsIgnoreCase("Minor Health Potion")) hero.addPV(25);
+            if (name.equalsIgnoreCase("Minor Mana Potion")) hero.addMana(25);
+            if (name.equalsIgnoreCase("Minor Attack Potion")) hero.addEffect(new Effect(20, 3, 0));
+            if (name.equalsIgnoreCase("Minor Defense Potion")) hero.addEffect(new Effect(20, 0, 3));
+            if (name.equalsIgnoreCase("Minor Experience Potion")) hero.addXp(2000);
 
-            if (name.equalsIgnoreCase("Health Potion")) Game.game.hero.addPV(60);
-            if (name.equalsIgnoreCase("Mana Potion")) Game.game.hero.addMana(60);
-            if (name.equalsIgnoreCase("Attack Potion")) Game.game.hero.addEffect(new Effect(20, 6, 0));
-            if (name.equalsIgnoreCase("Defense Potion")) Game.game.hero.addEffect(new Effect(20, 0, 6));
-            if (name.equalsIgnoreCase("Experience Potion")) Game.game.hero.addXp(6000);
+            if (name.equalsIgnoreCase("Health Potion")) hero.addPV(60);
+            if (name.equalsIgnoreCase("Mana Potion")) hero.addMana(60);
+            if (name.equalsIgnoreCase("Attack Potion")) hero.addEffect(new Effect(20, 6, 0));
+            if (name.equalsIgnoreCase("Defense Potion")) hero.addEffect(new Effect(20, 0, 6));
+            if (name.equalsIgnoreCase("Experience Potion")) hero.addXp(6000);
 
-            if (name.equalsIgnoreCase("Greater Health Potion")) Game.game.hero.addPV(150);
-            if (name.equalsIgnoreCase("Greater Mana Potion")) Game.game.hero.addMana(150);
-            if (name.equalsIgnoreCase("Greater Attack Potion")) Game.game.hero.addEffect(new Effect(20, 10, 0));
-            if (name.equalsIgnoreCase("Greater Defense Potion")) Game.game.hero.addEffect(new Effect(20, 0, 10));
-            if (name.equalsIgnoreCase("Greater Experience Potion")) Game.game.hero.addXp(20000);
+            if (name.equalsIgnoreCase("Greater Health Potion")) hero.addPV(150);
+            if (name.equalsIgnoreCase("Greater Mana Potion")) hero.addMana(150);
+            if (name.equalsIgnoreCase("Greater Attack Potion")) hero.addEffect(new Effect(20, 10, 0));
+            if (name.equalsIgnoreCase("Greater Defense Potion")) hero.addEffect(new Effect(20, 0, 10));
+            if (name.equalsIgnoreCase("Greater Experience Potion")) hero.addXp(20000);
 
         }
     }
 
-    public String getNameEffect() {
+    public String getNameEffect(Hero hero) {
         String name = getName();
         String effect = "";
-        if (getDefense() != 0) effect += getDefense() + " def";
-        if (getDefense() != 0 && getAttack() != 0)
+        if (getDefense(hero) != 0) effect += getDefense(hero) + " def";
+        if (getDefense(hero) != 0 && getAttack(hero) != 0)
             effect += " ";
-        if (getAttack() != 0) effect += getAttack() + " att";
+        if (getAttack(hero) != 0) effect += getAttack(hero) + " att";
 
         return name + " (+" + effect + ")";
     }
 
-    public String getStringLog() {
+    public String getStringLog(Hero hero) {
         return "Name : " + getName() + "\n"
                 + "Level : " + getLvl() + "\n"
-                + "Attack : " + getAttack() + "\n"
-                + "Defense : " + getDefense();
+                + "Attack : " + getAttack(hero) + "\n"
+                + "Defense : " + getDefense(hero);
     }
 
     public int getPassivRegeneration() {

@@ -1,6 +1,5 @@
 package org.plefevre.Model;
 
-import org.plefevre.Artifact;
 import org.plefevre.Effect;
 import org.plefevre.Game;
 import org.plefevre.View.Block_LvlComplete;
@@ -22,18 +21,20 @@ public class Hero {
     final static int CLASS_MAGE = 1;
     final static int CLASS_ARCHER = 2;
 
-    String name;
-    String className;
-    int lvl = 1;
-    int experience = 0;
-    int attack = 1;
-    int defense = 1;
-    int hit_point = 1;
+    private String name;
+    private String className;
+    private int id;
+    private int lvl = 1;
+    private int experience = 0;
+    private int attack = 1;
+    private int defense = 1;
+    private int hit_point = 1;
+    private int point_to_distribute = 0;
 
-    int pv = 100;
-    int mana = 100;
-    int x;
-    int y;
+    private int pv = 100;
+    private int mana = 100;
+    private int x;
+    private int y;
 
     Artifact[] inventory = new Artifact[INVENTORY_SIZE];
 
@@ -48,21 +49,23 @@ public class Hero {
         setClassName(className);
     }
 
+
+
     public int getAttack() {
         int att = 2 + (lvl + attack - 1) * 3;
-        if (current_weapon != null) att += current_weapon.getAttack();
+        if (current_weapon != null) att += current_weapon.getAttack(this);
 
-        for (Effect effect : effects) att += effect.attack * 3;
+        for (Effect effect : effects) att += effect.getAttack() * 3;
 
         return att;
     }
 
     public int getDefense() {
         int def = 2 + (lvl + defense - 1) * 3;
-        if (current_armor != null) def += current_armor.getDefense();
-        if (current_helm != null) def += current_helm.getDefense();
+        if (current_armor != null) def += current_armor.getDefense(this);
+        if (current_helm != null) def += current_helm.getDefense(this);
 
-        for (Effect effect : effects) def += effect.defense * 3;
+        for (Effect effect : effects) def += effect.getDefense() * 3;
 
         return def;
     }
@@ -132,7 +135,7 @@ public class Hero {
                 for (int i = 0; i < inventoryItems.length; i++) {
                     hero.inventory[i] = !inventoryItems[i].equals("null") ? Artifact.fromString(inventoryItems[i]) : null;
                 }
-
+                hero.setId(heroes.size());
                 heroes.add(hero);
             }
         } catch (IOException e) {
@@ -146,6 +149,7 @@ public class Hero {
     }
 
     public static void addHero(Hero newHero) {
+        newHero.setId(heroes.size());
         heroes.add(newHero);
         saveHeroes();
     }
@@ -210,9 +214,8 @@ public class Hero {
         if (id_inv < 0 || id_inv >= Hero.INVENTORY_SIZE) return;
 
         Artifact artifact = inventory[id_inv];
-        if (artifact != null && artifact.getType() == Artifact.TYPE_POTION && artifact.getLvl() <= lvl)
-        {
-            artifact.use();
+        if (artifact != null && artifact.getType() == Artifact.TYPE_POTION && artifact.getLvl() <= lvl) {
+            artifact.use(this);
             inventory[id_inv] = null;
         }
     }
@@ -263,6 +266,7 @@ public class Hero {
         while (experience > xpToEndLvl()) {
             experience -= xpToEndLvl();
             lvl++;
+            point_to_distribute++;
         }
     }
 
@@ -331,23 +335,6 @@ public class Hero {
         );
     }
 
-    public void move(int dx, int dy) {
-        Map.Tile tile = Game.game.map.getTile(x + dx, y + dy);
-
-        if (tile == null) {
-            Game.game.hero.addXp(Game.game.map.size * Game.game.map.size * 4);
-            Game.game.input.reload();
-            Game.game.rpgInterface.modal = new Block_LvlComplete();
-            Hero.saveHeroes();
-
-        } else {
-            if (tile.water)
-                return;
-        }
-        x += dx;
-        y += dy;
-    }
-
     public void setMana(int m) {
         mana = min(m, getMaxMana());
     }
@@ -359,19 +346,18 @@ public class Hero {
 
     public void addMana(int m) {
         mana = min(mana + m, getMaxMana());
+    }
 
+    public void setX(int x) {
+        this.x = x;
+    }
+
+    public void setY(int y) {
+        this.y = y;
     }
 
     public void addEffect(Effect effect) {
         effects.add(effect);
-    }
-
-    public void updateEffect() {
-        for (int i = effects.size() - 1; i >= 0; i--) {
-            effects.get(i).duration--;
-            if (effects.get(i).duration <= 0)
-                effects.remove(i);
-        }
     }
 
     public void regenerate() {
@@ -426,13 +412,13 @@ public class Hero {
 
     public int getEffectAtt() {
         int v = 0;
-        for (Effect effect : effects) v += effect.attack;
+        for (Effect effect : effects) v += effect.getAttack();
         return v;
     }
 
     public int getEffectDef() {
         int v = 0;
-        for (Effect effect : effects) v += effect.defense;
+        for (Effect effect : effects) v += effect.getDefense();
         return v;
     }
 
@@ -444,8 +430,7 @@ public class Hero {
         inventory[id] = null;
     }
 
-    public Artifact getInventory(int id)
-    {
+    public Artifact getInventory(int id) {
         if (id < 0 || id >= Hero.INVENTORY_SIZE)
             return null;
 
@@ -476,6 +461,14 @@ public class Hero {
         return experience;
     }
 
+    public int getAttackPoint() {
+        return attack;
+    }
+
+    public int getDefensePoint() {
+        return defense;
+    }
+
     public int getHit_point() {
         return hit_point;
     }
@@ -501,10 +494,42 @@ public class Hero {
     }
 
     public void removePv(int degat) {
-        pv = max(0, pv-degat);
+        pv = max(0, pv - degat);
     }
 
     public void setPv(int pv) {
         this.pv = pv;
+    }
+
+    public ArrayList<Effect> getEffects() {
+        return effects;
+    }
+
+    public void setAttack(int attack) {
+        this.attack = attack;
+    }
+
+    public void setDefense(int defense) {
+        this.defense = defense;
+    }
+
+    public void setHit_point(int hit_point) {
+        this.hit_point = hit_point;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public int getPoint_to_distribute() {
+        return point_to_distribute;
+    }
+
+    public void setPoint_to_distribute(int point_to_distribute) {
+        this.point_to_distribute = point_to_distribute;
     }
 }

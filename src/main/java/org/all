@@ -1904,7 +1904,7 @@ public class ArtifactLibrary {
 === ./View/Block_Victory.java ===
 package org.plefevre.View;
 
-import org.plefevre.Artifact;
+import org.plefevre.Model.Artifact;
 import org.plefevre.Game;
 import org.plefevre.Input;
 
@@ -1999,7 +1999,7 @@ package org.plefevre.View;
 
 import org.plefevre.Game;
 import org.plefevre.Model.Hero;
-import org.plefevre.Smiley;
+import org.plefevre.View.Smiley;
 
 import java.util.Arrays;
 
@@ -2132,7 +2132,7 @@ public class Block_Hero extends BlockRPG {
 === ./View/Block_Log.java ===
 package org.plefevre.View;
 
-import org.plefevre.Artifact;
+import org.plefevre.Model.Artifact;
 import org.plefevre.Game;
 import org.plefevre.Model.Hero;
 
@@ -2646,8 +2646,8 @@ public class BlockRPG {
 === ./View/Block_All_Artifact.java ===
 package org.plefevre.View;
 
-import org.plefevre.Artifact;
-import org.plefevre.ArtifactLibrary;
+import org.plefevre.Model.Artifact;
+import org.plefevre.Model.ArtifactLibrary;
 
 import java.util.List;
 
@@ -3182,7 +3182,7 @@ public class Block_LvlComplete extends BlockRPG {
 }=== ./View/Block_Inventaire.java ===
 package org.plefevre.View;
 
-import org.plefevre.Artifact;
+import org.plefevre.Model.Artifact;
 import org.plefevre.Game;
 import org.plefevre.Model.Hero;
 import org.plefevre.Input;
@@ -3689,13 +3689,13 @@ package org.plefevre.View;
 
 import org.plefevre.Animation;
 import org.plefevre.Color;
-import org.plefevre.Smiley;
+import org.plefevre.View.Smiley;
 import org.plefevre.Tools;
 
 import java.util.ArrayList;
 
 import static java.lang.Math.max;
-import static org.plefevre.Smiley.smileyMap;
+import static org.plefevre.View.Smiley.smileyMap;
 import static org.plefevre.TerminalSize.getTerminalSize;
 
 public class RPGInterface {
@@ -4611,7 +4611,7 @@ public class Map {
 === ./Model/Hero.java ===
 package org.plefevre.Model;
 
-import org.plefevre.Artifact;
+import org.plefevre.Model.Artifact;
 import org.plefevre.Effect;
 import org.plefevre.Game;
 import org.plefevre.View.Block_LvlComplete;
@@ -5121,8 +5121,8 @@ public class Hero {
 package org.plefevre.Model;
 
 
-import org.plefevre.Artifact;
-import org.plefevre.ArtifactLibrary;
+import org.plefevre.Model.Artifact;
+import org.plefevre.Model.ArtifactLibrary;
 
 import java.util.ArrayList;
 import java.util.List;

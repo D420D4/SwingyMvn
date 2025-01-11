@@ -14,9 +14,7 @@ public class Block_Map extends BlockRPG {
     }
 
     @Override
-    public char[][] draw() {
-        Hero hero = Game.game.getHero();
-        Map map = Game.game.getMap();
+    public char[][] draw(Map map, Hero hero) {
         int size = map.getSize();
 
         int dx = size / 2 - hero.getX();
@@ -35,10 +33,8 @@ public class Block_Map extends BlockRPG {
         color = new byte[rh][rw];
 
         drawCadre("Map ");
-        if (focus) {
-            setBorderColor(0, 0, rw, rh, (byte) 2);
-            gestionFocus();
-        }
+        if (focus) setBorderColor(0, 0, rw, rh, (byte) 2);
+
         int centerX = rw / 2 - size + dx;
         int centerY = rh / 2 - size / 2 + dy;
 
@@ -173,17 +169,5 @@ public class Block_Map extends BlockRPG {
 
 
         return buffer;
-    }
-
-    private void gestionFocus() {
-        Input input = Game.game.input;
-        input.setListen_tap(false);
-
-        if (input.getTouch() == 1) Game.game.moveHero(0, -1);
-        if (input.getTouch() == 2) Game.game.moveHero(0, 1);
-        if (input.getTouch() == 3) Game.game.moveHero(1, 0);
-        if (input.getTouch() == 4) Game.game.moveHero(-1, 0);
-
-
     }
 }

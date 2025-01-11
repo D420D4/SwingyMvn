@@ -1,8 +1,10 @@
 package org.plefevre.View;
 
-import org.plefevre.Artifact;
+import org.plefevre.Model.Artifact;
 import org.plefevre.Game;
 import org.plefevre.Input;
+import org.plefevre.Model.Hero;
+import org.plefevre.Model.Map;
 
 import java.util.ArrayList;
 
@@ -32,15 +34,13 @@ public class Block_Victory extends BlockRPG {
     }
 
     @Override
-    public char[][] draw() {
+    public char[][] draw(Map map, Hero hero) {
 
         buffer = new char[rh][rw];
         color = new byte[rh][rw];
 
         drawCadre("Defeat ");
         fillColor(color, 0, 0, rw, rh, (byte) -25);
-
-        if (focus) gestionFocus();
 
 
         drawAscii(buffer,
@@ -77,17 +77,11 @@ public class Block_Victory extends BlockRPG {
         return buffer;
     }
 
-    private void gestionFocus() {
-        Input input = Game.game.input;
-        input.setListen_tap(false);
-        input.setListen_x(0);
-        input.setListen_y(Game.game.getRpgInterface().getH());
+    public void setSelected(int selected) {
+        this.selected = selected;
+    }
 
-        if (input.getTouch() == 3) selected++;
-        if (input.getTouch() == 4) selected--;
-        if (input.getTouch() == 5) {
-            Game.game.getRpgInterface().setModal(null);
-            input.reload();
-        }
+    public void setXp(int xp) {
+        this.xp = xp;
     }
 }

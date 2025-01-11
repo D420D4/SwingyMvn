@@ -12,27 +12,30 @@ public class Input {
 
     String text = "";
     boolean enter = false;
-    boolean listen_tap = false;
+    boolean listen_tap = false; //Quand false on ecout juste une touche
     boolean reload = false;
+    boolean moveCursor = false;
     int listen_x = 0;
     int listen_y = 0;
 
     int touch = -1;
 
     boolean is_tab;
+    int count = 0;
 
     public void listen() {
 
         is_tab = false;
         enter = false;
         touch = -1;
-
+        count++;
+/*
         if(reload)
         {
             reload = false;
             return;
         }
-
+*/
         try (Terminal terminal = TerminalBuilder.terminal()) {
             LineReader reader = LineReaderBuilder.builder().terminal(terminal).build();
 
@@ -94,8 +97,10 @@ public class Input {
                 // Construire le prompt avec la séquence de déplacement du curseur
                 String prompt = "$> ";
 
-                String moveCursor = "\033[" + listen_y + ";" + listen_x + "H";  // 30 = ligne, 10 = colonne
-                terminal.writer().print(moveCursor);
+                if (moveCursor) {
+                    String moveCursor = "\033[" + listen_y + ";" + listen_x + "H";  // 30 = ligne, 10 = colonne
+                    terminal.writer().print(moveCursor);
+                }
                 terminal.flush();
 
                 text = reader.readLine(prompt);
@@ -156,5 +161,25 @@ public class Input {
 
     public void setText(String s) {
         text = s;
+    }
+
+    public void setMoveCursor(boolean moveCursor) {
+        this.moveCursor = moveCursor;
+    }
+
+    @Override
+    public String toString() {
+        return "Input{" +
+                "text='" + text + '\'' +
+                ", enter=" + enter +
+                ", listen_tap=" + listen_tap +
+                ", reload=" + reload +
+                ", moveCursor=" + moveCursor +
+                ", listen_x=" + listen_x +
+                ", listen_y=" + listen_y +
+                ", touch=" + touch +
+                ", is_tab=" + is_tab +
+                ", count=" + count +
+                '}';
     }
 }

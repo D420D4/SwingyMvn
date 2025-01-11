@@ -1,6 +1,6 @@
-package org.plefevre;
+package org.plefevre.Model;
 
-import org.plefevre.Model.Hero;
+import org.plefevre.View.Smiley;
 
 import java.util.ArrayList;
 import java.util.List;

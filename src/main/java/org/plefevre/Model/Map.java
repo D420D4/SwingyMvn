@@ -12,7 +12,7 @@ public class Map {
     int lvl;
     public Tile[][] tiles;
 
-    public static final double PROBA_GEN_MONSTER = 0.03 * 0.001;
+    public static final double PROBA_GEN_MONSTER = 0.03 * 1;
 
     Random random;
     NoiseGenerator noise;
@@ -72,11 +72,11 @@ public class Map {
     }
 
     public void centerHero(Hero hero) {
-        hero.x = size / 2;
-        hero.y = size / 2;
+        hero.setX(size / 2);
+        hero.setY(size / 2);
 
         int maxGen = 20;
-        while (tiles[hero.y][hero.x].water && maxGen-- > 0) {
+        while (tiles[hero.getY()][hero.getX()].water && maxGen-- > 0) {
             regenerate();
         }
 
@@ -87,10 +87,10 @@ public class Map {
 
         for (int k = -2; k < 3; k++) {
             for (int l = -2; l < 3; l++) {
-                if (hero.y + k < 0 || hero.y + k >= tiles.length || hero.x + l < 0 || hero.x + l >= tiles[hero.y].length)
+                if (hero.getY() + k < 0 || hero.getY() + k >= tiles.length || hero.getX() + l < 0 || hero.getX() + l >= tiles[hero.getY()].length)
                     continue;
-                if (tiles[hero.y + k][hero.x + l] != null)
-                    tiles[hero.y + k][hero.x + l].monster = null;
+                if (tiles[hero.getY() + k][hero.getX() + l] != null)
+                    tiles[hero.getY() + k][hero.getX() + l].monster = null;
             }
         }
     }
@@ -101,52 +101,7 @@ public class Map {
         return tiles[y][x];
     }
 
-    public void moveMonster() {
 
-        for (int i = 0; i < size; i++) {
-            for (int j = 0; j < size; j++) {
-                tiles[i][j].movedMonster = false;
-            }
-        }
-
-        for (int i = 0; i < size; i++) {
-            for (int j = 0; j < size; j++) {
-                if (tiles[i][j].monster != null && !tiles[i][j].movedMonster)
-                    moveMonster(j, i);
-            }
-        }
-    }
-
-    private void moveMonster(int x, int y) {
-        int nx = x;
-        int ny = y;
-
-        Hero hero = Game.game.hero;
-        if (Math.sqrt(Math.pow(hero.x - x, 2) + Math.pow(hero.y - y, 2)) < 5) {
-            int dx = hero.x - x;
-            int dy = hero.y - y;
-
-            if (abs(dx) > abs(dy))
-                nx += dx > 0 ? 1 : -1;
-            else
-                ny += dy > 0 ? 1 : -1;
-        } else {
-            int mv = (int) (Math.random() * 4);
-            if (mv == 0) nx++;
-            if (mv == 1) nx--;
-            if (mv == 2) ny++;
-            if (mv == 3) ny--;
-        }
-        Map.Tile tileDepart = getTile(x, y);
-        Map.Tile tile = getTile(nx, ny);
-        if (tile == null || tile.water || tileDepart.mountain ^ tile.mountain || tile.monster != null)
-            return;
-
-        tile.monster = tileDepart.monster;
-        tile.movedMonster = true;
-        tileDepart.monster = null;
-
-    }
 
     public int getSize() {
         return size;
@@ -175,6 +130,10 @@ public class Map {
 
         public boolean isMovedMonster() {
             return movedMonster;
+        }
+
+        public void setMovedMonster(boolean movedMonster) {
+            this.movedMonster = movedMonster;
         }
 
         public Monster getMonster() {

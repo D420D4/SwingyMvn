@@ -1,9 +1,10 @@
 package org.plefevre.View;
 
-import org.plefevre.Artifact;
+import org.plefevre.Model.Artifact;
 import org.plefevre.Game;
 import org.plefevre.Model.Hero;
 import org.plefevre.Input;
+import org.plefevre.Model.Map;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,17 +24,13 @@ public class Block_Inventaire extends BlockRPG {
     final static int WIDTH_CASE = 12;
 
     @Override
-    public char[][] draw() {
-        Hero hero = Game.game.getHero();
+    public char[][] draw(Map map, Hero hero) {
         buffer = new char[rh][rw];
         color = new byte[rh][rw];
         if (rh < 20 || rw < 30) return buffer;
 
         drawCadre("Inventory ");
-        if (focus) {
-            setBorderColor(0, 0, rw, rh, (byte) 2);
-            gestionFocus();
-        }
+        if (focus) setBorderColor(0, 0, rw, rh, (byte) 2);
 
 
         int nbCase_per_line = (rw - 4) / WIDTH_CASE;
@@ -96,8 +93,8 @@ public class Block_Inventaire extends BlockRPG {
             y = line_y + 3;
             setTextAt(buffer, selectArtifact.getName(), sx + 15, y++);
             setTextAt(buffer, selectArtifact.getLvl() + "", sx + 15, y++);
-            setTextAt(buffer, selectArtifact.getAttack() + "", sx + 15, y++);
-            setTextAt(buffer, selectArtifact.getDefense() + "", sx + 15, y++);
+            setTextAt(buffer, selectArtifact.getAttack(hero) + "", sx + 15, y++);
+            setTextAt(buffer, selectArtifact.getDefense(hero) + "", sx + 15, y++);
 
             ArrayList<Artifact.PassivEffect> passivEffects = selectArtifact.getPassivEffect();
 
@@ -142,98 +139,6 @@ public class Block_Inventaire extends BlockRPG {
         return buffer;
     }
 
-    private void gestionFocus() {
-        Input input = Game.game.input;
-        input.setListen_tap(false);
-        input.setListen_x(0);
-        input.setListen_y(Game.game.getRpgInterface().getH());
 
-        if (!select) {
-            if (input.getTouch() == 3) selected++;
-            if (input.getTouch() == 4) selected--;
-
-            if (input.getTouch() == 1 && selected >= 4) selected -= 4;
-            if (input.getTouch() == 2 && selected <= 5) selected += 4;
-
-
-            if (input.getTouch() == 5) {
-                select = true;
-                subSelected = 0;
-            }
-
-            if (selected < 0)
-                selected = Hero.INVENTORY_SIZE - 1;
-            selected %= Hero.INVENTORY_SIZE;
-        } else {
-            Artifact selectArtifact = Game.game.getHero().getInventory(selected);
-            if (selectArtifact != null) {
-                if (input.getTouch() == 3) subSelected++;
-                if (input.getTouch() == 4) subSelected--;
-
-                boolean isEquipable = selectArtifact.getType() == Artifact.TYPE_WEAPON || selectArtifact.getType() == Artifact.TYPE_ARMOR || selectArtifact.getType() == Artifact.TYPE_HELM;
-                boolean isUsable = selectArtifact.getType() == Artifact.TYPE_POTION;
-
-                if (isEquipable || isUsable) {
-                    if (subSelected < 0)
-                        subSelected = 2;
-                    subSelected %= 3;
-
-                    if (input.getTouch() == 5) {
-                        if (subSelected == 2) {
-                            select = false;
-                        }
-                        if (subSelected == 1) {
-                            Game.game.getHero().throwE(selected);
-                            select = false;
-                        }
-                        if (subSelected == 0) {
-                            if (selectArtifact.getLvl() > Game.game.getHero().getLvl()) {
-                                Game.game.getLog().addTextColor("Level too hight", (byte) 1);
-
-                            } else {
-                                if (selectArtifact.getType() == Artifact.TYPE_WEAPON || selectArtifact.getType() == Artifact.TYPE_ARMOR || selectArtifact.getType() == Artifact.TYPE_HELM)
-                                    Game.game.getHero().equip(selected);
-                                else if (selectArtifact.getType() == Artifact.TYPE_POTION) Game.game.getHero().use(selected);
-                                select = false;
-                            }
-                        }
-                    }
-                } else {
-                    if (subSelected < 0)
-                        subSelected = 1;
-                    subSelected %= 2;
-
-                    if (input.getTouch() == 5) {
-                        if (subSelected == 0) Game.game.getHero().throwE(selected);
-                        select = false;
-                    }
-
-                }
-
-            } else {
-                if (input.getTouch() == 1) subSelected--;
-                if (input.getTouch() == 2) subSelected++;
-
-                if (input.getTouch() == 5) {
-                    Game.game.getLog().addSimpleText("Select : " + subSelected);
-
-                    if (subSelected == 0) Game.game.getHero().unequip(Artifact.TYPE_WEAPON, selected);
-                    else if (subSelected == 1) Game.game.getHero().unequip(Artifact.TYPE_ARMOR, selected);
-                    else if (subSelected == 2) Game.game.getHero().unequip(Artifact.TYPE_HELM, selected);
-
-                    select = false;
-                }
-
-                if (subSelected < 0)
-                    subSelected = 3;
-                subSelected %= 4;
-            }
-
-        }
-        if (input.getTouch() == 5)
-            input.reload();
-
-
-    }
 
 }

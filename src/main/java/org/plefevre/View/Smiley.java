@@ -1,4 +1,4 @@
-package org.plefevre;
+package org.plefevre.View;
 
 import java.util.HashMap;
 import java.util.Map;

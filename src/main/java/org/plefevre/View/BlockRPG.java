@@ -1,5 +1,8 @@
 package org.plefevre.View;
 
+import org.plefevre.Model.Hero;
+import org.plefevre.Model.Map;
+
 import java.util.ArrayList;
 
 public class BlockRPG {
@@ -33,7 +36,7 @@ public class BlockRPG {
         ry = y;
     }
 
-    public char[][] draw() {
+    public char[][] draw(Map map, Hero hero) {
         buffer = new char[rh][rw];
         color = new byte[rh][rw];
         String str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";//░█▒ *.";
@@ -234,5 +237,9 @@ public class BlockRPG {
 
     public int getRy() {
         return ry;
+    }
+
+    public void setFocus(boolean b) {
+        focus = b;
     }
 }

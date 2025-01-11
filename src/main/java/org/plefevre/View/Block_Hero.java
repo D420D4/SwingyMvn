@@ -2,7 +2,7 @@ package org.plefevre.View;
 
 import org.plefevre.Game;
 import org.plefevre.Model.Hero;
-import org.plefevre.Smiley;
+import org.plefevre.Model.Map;
 
 import java.util.Arrays;
 
@@ -15,8 +15,8 @@ public class Block_Hero extends BlockRPG {
     }
 
     @Override
-    public char[][] draw() {
-        Hero hero = Game.game.getHero();
+    public char[][] draw(Map map, Hero hero) {
+
         buffer = new char[rh][rw];
         color = new byte[rh][rw];
 
@@ -47,8 +47,8 @@ public class Block_Hero extends BlockRPG {
         setTextAt(buffer, hero.getName(), sx + 17, sy);
         setTextAt(buffer, hero.getClassName(), sx + 17, sy + 1);
 
-        setSmiley(buffer, Smiley.SMILEY_SWORD, sx + 17, sy + 2, hero.getAttack());
-        setSmiley(buffer, Smiley.SMILEY_SHIELD, sx + 17, sy + 3, hero.getDefense());
+        setSmiley(buffer, Smiley.SMILEY_SWORD, sx + 17, sy + 2, hero.getAttackPoint());
+        setSmiley(buffer, Smiley.SMILEY_SHIELD, sx + 17, sy + 3, hero.getDefensePoint());
         setSmiley(buffer, Smiley.SMILEY_HEART, sx + 17, sy + 4, hero.getHit_point());
 
         int effAtt = hero.getEffectAtt();
@@ -111,9 +111,9 @@ public class Block_Hero extends BlockRPG {
             setTextAt(buffer, s, sx, y++);
         }
 
-        String str_weapon = hero.getCurrent_weapon() != null ? hero.getCurrent_weapon().getNameEffect() : "None";
-        String str_armor = (hero.getCurrent_armor() != null ? hero.getCurrent_armor().getNameEffect() : "None");
-        String str_helm = (hero.getCurrent_helm() != null ? hero.getCurrent_helm().getNameEffect() : "None");
+        String str_weapon = hero.getCurrent_weapon() != null ? hero.getCurrent_weapon().getNameEffect(hero) : "None";
+        String str_armor = (hero.getCurrent_armor() != null ? hero.getCurrent_armor().getNameEffect(hero) : "None");
+        String str_helm = (hero.getCurrent_helm() != null ? hero.getCurrent_helm().getNameEffect(hero) : "None");
 
 
         setTextAt(buffer, str_weapon, sx + 21, sy);

@@ -1,9 +1,7 @@
 package org.plefevre.View;
 
 import org.plefevre.Model.Artifact;
-import org.plefevre.Game;
 import org.plefevre.Model.Hero;
-import org.plefevre.Input;
 import org.plefevre.Model.Map;
 
 import java.util.ArrayList;
@@ -11,9 +9,8 @@ import java.util.Arrays;
 
 public class Block_Inventaire extends BlockRPG {
 
-    int selected = 0;
-    int subSelected = 0;
-    boolean select = false;
+    private int subSelected = 0;
+    private boolean select = false;
 
     public Block_Inventaire(int x, int y, int w, int h) {
         super(x, y, w, h);
@@ -139,6 +136,19 @@ public class Block_Inventaire extends BlockRPG {
         return buffer;
     }
 
+    public int getSubSelected() {
+        return subSelected;
+    }
 
+    public void setSubSelected(int subSelected) {
+        this.subSelected = subSelected;
+    }
 
+    public boolean isSelect() {
+        return select;
+    }
+
+    public void setSelect(boolean select) {
+        this.select = select;
+    }
 }

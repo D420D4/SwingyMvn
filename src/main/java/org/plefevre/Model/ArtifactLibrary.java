@@ -612,7 +612,7 @@ public class ArtifactLibrary {
     private Artifact createLeatherCap() {
         Artifact leatherCap = new Artifact();
         leatherCap.setName("Leather Cap");
-        leatherCap.setType(Artifact.TYPE_HELM);
+        leatherCap.setType(Artifact.TYPE_ARMOR);
         leatherCap.setLvl(1);
         leatherCap.setAscii(("   ▄  ▄    " + " ▐░░░░▌   " + " █░░░░█   ").toCharArray());
         leatherCap.setAscii_color(
@@ -625,7 +625,7 @@ public class ArtifactLibrary {
     private Artifact createClothHood() {
         Artifact clothHood = new Artifact();
         clothHood.setName("Cloth Hood");
-        clothHood.setType(Artifact.TYPE_HELM);
+        clothHood.setType(Artifact.TYPE_ARMOR);
         clothHood.setLvl(2);
         clothHood.setAscii(("   \\  /   " + "   |xx|   " + "   |xx|   ").toCharArray());
         clothHood.setAscii_color(

@@ -1,13 +1,8 @@
 package org.plefevre.View;
 
-import org.plefevre.Model.Artifact;
-import org.plefevre.Game;
 import org.plefevre.Model.Hero;
 import org.plefevre.Model.Log;
 import org.plefevre.Model.Map;
-
-import java.util.ArrayList;
-import java.util.Arrays;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;

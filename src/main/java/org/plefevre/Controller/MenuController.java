@@ -1,6 +1,6 @@
 package org.plefevre.Controller;
 
-import org.plefevre.Input;
+import org.plefevre.View.Input;
 import org.plefevre.Model.Hero;
 import org.plefevre.View.Menu_Choose_Hero;
 
@@ -59,7 +59,20 @@ public class MenuController {
 
     private Hero createHero() {
         menuView.displayMessage("Creating a new Hero : ");
-        String heroName = menuView.readLine("Please enter a name for your hero : ");
+
+        String heroName;
+        boolean isValidName;
+
+        do {
+            heroName = menuView.readLine("Please enter a name for your hero (letters and numbers only): ");
+            isValidName = heroName.matches("[a-zA-Z0-9]+");
+
+            if (!isValidName) {
+                menuView.displayMessage("Invalid name. Please use only letters and numbers.");
+            }
+        } while (!isValidName);
+
+
 
         String[] classes = {"Warrior", "Mage", "Archey"};
         int classChoice = menuView.askClassChoice(classes);
@@ -69,14 +82,17 @@ public class MenuController {
         int pointsLeft = 5;
 
         while (pointsLeft > 0) {
-            attack += menuView.askPoints("attack", attack, pointsLeft);
-            pointsLeft -= attack;
+            int attackAdd = menuView.askPoints("attack", attack, pointsLeft);
+            attack += attackAdd;
+            pointsLeft -= attackAdd;
             if (pointsLeft <= 0) break;
-            defense += menuView.askPoints("defense", defense, pointsLeft);
-            pointsLeft -= defense;
+            int defenseAdd = menuView.askPoints("defense", defense, pointsLeft);
+            defense += defenseAdd;
+            pointsLeft -= defenseAdd;
             if (pointsLeft <= 0) break;
-            hitPoints += menuView.askPoints("hit points", hitPoints, pointsLeft);
-            pointsLeft -= hitPoints;
+            int hitPointsAdd = menuView.askPoints("hit points", hitPoints, pointsLeft);
+            hitPoints += hitPointsAdd;
+            pointsLeft -= hitPointsAdd;
         }
 
         Hero newHero = new Hero(heroName, classes[classChoice]);

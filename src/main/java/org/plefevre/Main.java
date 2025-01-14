@@ -8,8 +8,13 @@ import org.plefevre.View.*;
 
 import java.util.ArrayList;
 
+import static org.plefevre.Model.DatabaseSetup.*;
+
 public class Main {
     public static void main(String[] args) {
+
+        initConnection();
+        createTable();
 
         Hero.loadHeroes();
 
@@ -41,5 +46,7 @@ public class Main {
         GameController gameController = new GameController(rpgInterface, input, log);
         gameController.initGame(chosenHero);
         gameController.run();
+
+        closeConnection();
     }
 }

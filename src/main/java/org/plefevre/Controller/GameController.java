@@ -1,7 +1,6 @@
 package org.plefevre.Controller;
 
-import org.plefevre.Game;
-import org.plefevre.Input;
+import org.plefevre.View.Input;
 import org.plefevre.Model.Hero;
 import org.plefevre.Model.Log;
 import org.plefevre.Model.Map;
@@ -56,6 +55,7 @@ public class GameController {
         focusController.setGameController(this);
 
         map.centerHero(hero);
+        heroController.setInitValue();
 
         rpgView.setModal(null);
     }
@@ -63,7 +63,12 @@ public class GameController {
     public void initGame() {
         Hero.loadHeroes();
         ArrayList<Hero> heroes = Hero.getHeroesSaved();
+        int nbPtDistribute = hero.getPoint_to_distribute();
         hero = heroes.get(hero.getId());
+        hero.setPoint_to_distribute(nbPtDistribute);
+
+        focusController.setHero(hero);
+        heroController.setCurrentHero(hero);
         heroController.setInitValue();
 
         this.map = new Map(hero.getLvl(), (int) (Math.random() * 42000));
@@ -92,7 +97,7 @@ public class GameController {
 
             updateGamePlay();
 
-            if (rpgView.getModal() == null && hero.getPoint_to_distribute() !=0) {
+            if (rpgView.getModal() == null && hero.getPoint_to_distribute() != 0) {
                 rpgView.setModal(new Block_LvlUp());
             }
         }
@@ -102,13 +107,13 @@ public class GameController {
 
         for (int i = 0; i < map.getSize(); i++) {
             for (int j = 0; j < map.getSize(); j++) {
-                map.getTile(j,i).setMovedMonster(false);
+                map.getTile(j, i).setMovedMonster(false);
             }
         }
 
         for (int i = 0; i < map.getSize(); i++) {
             for (int j = 0; j < map.getSize(); j++) {
-                if (map.getTile(j,i).getMonster() != null && !map.getTile(j,i).isMovedMonster())
+                if (map.getTile(j, i).getMonster() != null && !map.getTile(j, i).isMovedMonster())
                     moveMonster(j, i, hero);
             }
         }

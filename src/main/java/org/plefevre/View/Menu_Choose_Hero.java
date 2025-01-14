@@ -1,7 +1,5 @@
 package org.plefevre.View;
 
-import org.plefevre.Color;
-import org.plefevre.Input;
 import org.plefevre.Model.Hero;
 
 import java.util.ArrayList;

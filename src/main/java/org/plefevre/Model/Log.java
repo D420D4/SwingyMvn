@@ -1,6 +1,6 @@
 package org.plefevre.Model;
 
-import org.plefevre.ConstructLog;
+import org.plefevre.Controller.ConstructLog;
 
 import java.util.ArrayList;
 import java.util.Arrays;

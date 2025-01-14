@@ -1,7 +1,6 @@
 package org.plefevre.Model;
 
-import org.plefevre.Game;
-import org.plefevre.NoiseGenerator;
+import org.plefevre.Controller.NoiseGenerator;
 
 import java.util.Random;
 

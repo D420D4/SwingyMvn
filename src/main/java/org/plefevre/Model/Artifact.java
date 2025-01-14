@@ -1,8 +1,6 @@
 package org.plefevre.Model;
 
-import org.plefevre.Effect;
-import org.plefevre.Game;
-
+import java.sql.*;
 import java.util.ArrayList;
 
 public class Artifact {
@@ -20,6 +18,7 @@ public class Artifact {
     private int class_destination = -1;
     private int attack;
     private int defense;
+    private int id;
 
     public Artifact(String name, int type, int lvl, Hero hero) {
         this.name = name;
@@ -27,8 +26,29 @@ public class Artifact {
         setLvl(lvl);
     }
 
+    public Artifact(int id, String name, int type, int lvl, int class_destination, int attack, int defense, String ascii_str, String ascii_color_str) {
+        this.name = name;
+        this.type = type;
+        this.lvl = lvl;
+        this.class_destination = class_destination;
+        this.attack = attack;
+        this.defense = defense;
+        this.ascii = ascii_str.toCharArray();
+        this.id = id;
+
+        ascii_color = new byte[ascii_color_str.length() / 4];
+        for (int i = 0; i < ascii_color_str.length(); i += 4) {
+            ascii_color[i / 4] = Byte.parseByte(
+                    ascii_color_str.substring(i, i + 4).replaceAll(" ", ""));
+        }
+    }
+
     public Artifact() {
 
+    }
+
+    public int getId() {
+        return id;
     }
 
     public String getName() {
@@ -41,46 +61,6 @@ public class Artifact {
 
     public int getLvl() {
         return lvl;
-    }
-
-    @Override
-    public String toString() {
-
-        String asciiString = new String(ascii);
-
-        StringBuilder asciiColorString = new StringBuilder();
-        for (int i = 0; i < ascii_color.length; i++) {
-            byte b = ascii_color[i];
-            asciiColorString.append(String.format("%4d", b));
-        }
-
-        return name + ":" + type + ":" + lvl + ":" + attack + ":" + defense + ":" + class_destination + ":" + asciiColorString + ":" + asciiString;
-    }
-
-    public static Artifact fromString(String data) {
-        String[] parts = data.split(":", 8);
-
-        if (parts.length != 8) {
-//            return null;
-            throw new IllegalArgumentException("Invalid artifact data: " + data);
-        }
-
-        Artifact artifact = new Artifact();
-        artifact.name = parts[0];
-        artifact.type = Integer.parseInt(parts[1]);
-        artifact.lvl = Integer.parseInt(parts[2]);
-        artifact.attack = Integer.parseInt(parts[3]);
-        artifact.defense = Integer.parseInt(parts[4]);
-        artifact.class_destination = Integer.parseInt(parts[5]);
-        String colorParts = parts[6];
-        artifact.ascii = parts[7].toCharArray();
-
-        artifact.ascii_color = new byte[colorParts.length() / 4];
-        for (int i = 0; i < colorParts.length(); i += 4) {
-            artifact.ascii_color[i / 4] = Byte.parseByte(
-                    colorParts.substring(i, i + 4).replaceAll(" ", ""));
-        }
-        return artifact;
     }
 
     public void setName(String name) {
@@ -346,6 +326,44 @@ public class Artifact {
         return l;
     }
 
+    public void saveArtifact() {
+        Connection connection = DatabaseSetup.getConnection();
+
+        String saveArtifactQuery = """
+            INSERT INTO Artifact (id, name, type, lvl, class_destination, attack, defense)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE
+                name = VALUES(name),
+                type = VALUES(type),
+                lvl = VALUES(lvl),
+                class_destination = VALUES(class_destination),
+                attack = VALUES(attack),
+                defense = VALUES(defense);""";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(saveArtifactQuery, Statement.RETURN_GENERATED_KEYS)) {
+            preparedStatement.setObject(1, getId() == 0 ? null : getId(), Types.INTEGER);
+            preparedStatement.setString(2, getName());
+            preparedStatement.setInt(3, getType());
+            preparedStatement.setInt(4, getLvl());
+            preparedStatement.setInt(5, class_destination);
+            preparedStatement.setInt(6, attack);
+            preparedStatement.setInt(7, defense);
+            preparedStatement.executeUpdate();
+
+            if (getId() == 0) {
+                try (ResultSet generatedKeys = preparedStatement.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        setId(generatedKeys.getInt(1));
+                    }
+                }
+            }
+
+            System.out.println("Artifact saved successfully.");
+        } catch (SQLException e) {
+            System.err.println("Error while saving artifact: " + e.getMessage());
+        }
+    }
+
     public class PassivEffect {
         String name;
         int value;
@@ -362,6 +380,10 @@ public class Artifact {
         public int getValue() {
             return value;
         }
+    }
+
+    private void setId(int id) {
+        this.id = id;
     }
 
     public char[] getAscii() {

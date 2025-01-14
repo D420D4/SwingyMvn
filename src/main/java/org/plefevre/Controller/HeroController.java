@@ -1,10 +1,8 @@
 package org.plefevre.Controller;
 
-import org.plefevre.Effect;
-import org.plefevre.Game;
+import org.plefevre.Model.Effect;
 import org.plefevre.Model.Hero;
 import org.plefevre.Model.Map;
-import org.plefevre.View.Block_LvlComplete;
 
 import java.util.ArrayList;
 

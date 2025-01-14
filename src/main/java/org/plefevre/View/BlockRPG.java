@@ -16,6 +16,8 @@ public class BlockRPG {
     int rx;
     int ry;
 
+    int selected;
+
     boolean useColor = false;
     char[][] buffer;
     byte[][] color;
@@ -241,5 +243,13 @@ public class BlockRPG {
 
     public void setFocus(boolean b) {
         focus = b;
+    }
+
+    public int getSelected() {
+        return selected;
+    }
+
+    public void setSelected(int selected) {
+        this.selected = selected;
     }
 }

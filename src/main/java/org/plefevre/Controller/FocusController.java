@@ -1,7 +1,6 @@
 package org.plefevre.Controller;
 
-import org.plefevre.ConstructLog;
-import org.plefevre.Input;
+import org.plefevre.View.Input;
 import org.plefevre.Model.*;
 import org.plefevre.View.*;
 
@@ -9,6 +8,8 @@ import java.util.ArrayList;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
+
+import org.plefevre.Model.Map;
 
 public class FocusController {
 
@@ -137,8 +138,6 @@ public class FocusController {
                 if (input.getTouch() == 2) subSelected++;
 
                 if (input.getTouch() == 5) {
-                    log.addSimpleText("Select : " + subSelected);
-
                     if (subSelected == 0) hero.unequip(Artifact.TYPE_WEAPON, selected);
                     else if (subSelected == 1) hero.unequip(Artifact.TYPE_ARMOR, selected);
                     else if (subSelected == 2) hero.unequip(Artifact.TYPE_HELM, selected);
@@ -154,6 +153,18 @@ public class FocusController {
         }
         if (input.getTouch() == 5)
             input.reload();
+
+        BlockRPG blockRPG = null;
+        for (int i = 0; i < rpgView.getBlockRPGS().size(); i++) {
+            if (rpgView.getBlockRPGS().get(i) instanceof Block_Inventaire) blockRPG = rpgView.getBlockRPGS().get(i);
+        }
+
+        if (blockRPG != null) {
+            ((Block_Inventaire) blockRPG).setSelected(selected);
+            ((Block_Inventaire) blockRPG).setSubSelected(subSelected);
+            ((Block_Inventaire) blockRPG).setSelect(select);
+
+        }
 
     }
 
@@ -183,7 +194,8 @@ public class FocusController {
         else if (rpgView.getModal() instanceof Block_Victory blockVictory) blockVictory.setSelected(selected);
         else if (rpgView.getModal() instanceof Block_Defeat blockDefeat) blockDefeat.setSelected(selected);
         else if (rpgView.getModal() instanceof Block_LvlUp blockLvlUp) blockLvlUp.setSelected(selected);
-        else if (rpgView.getModal() instanceof Block_LvlChooseFight blockLvlChooseFight) blockLvlChooseFight.setSelected(selected);
+        else if (rpgView.getModal() instanceof Block_LvlChooseFight blockLvlChooseFight)
+            blockLvlChooseFight.setSelected(selected);
 
         return -1;
     }
@@ -220,12 +232,12 @@ public class FocusController {
 
         if (selected == 0) {
             int degat = hero.getAttackFight();
-            int defense = (int) ((int) monster.getDefense() * 0.2);
+            int defense = (int) (monster.getDefense() * 0.2);
             if (moveMonster == 1)
                 defense = (int) (monster.getDefense() + (4 + monster.getLvl() / 2) * (Math.random() - 0.5));
             int mana_consom = (int) (degat * 0.8);
 
-            mana_consom = min(mana_consom, hero.getMaxMana() / 4);
+            mana_consom = max(1, min(mana_consom, hero.getMaxMana() / 4));
 
             log.clean();
             log.add(hero.getName(), (byte) -2);
@@ -290,7 +302,7 @@ public class FocusController {
 
         if (hero.getPv() <= 0) {
             input.reload();
-            rpgView.setModal(new Block_Defeat());
+            setModal(new Block_Defeat());
         }
         if (monster.getPv() <= 0) {
             ArrayList<Artifact> artifacts = monster.getArtifact();
@@ -305,10 +317,15 @@ public class FocusController {
             Block_Victory modal = new Block_Victory();
             modal.setXp(xp);
             modal.artifacts = artifacts;
-            rpgView.setModal(modal);
+            setModal(modal);
         }
+    }
 
-
+    private void setModal(BlockRPG modal) {
+        rpgView.setModal(modal);
+        selected = 0;
+        subSelected = 0;
+        select = false;
     }
 
 
@@ -380,6 +397,7 @@ public class FocusController {
             else if (text.startsWith("unequip")) command_unequip(text);
             else if (text.startsWith("throw")) command_throw(text);
             else if (text.startsWith("use")) command_use(text);
+            else if (text.startsWith("log")) command_log();
             else if (text.startsWith("dimension")) log.addSimpleText(rpgView.getH() + " * " + rpgView.getW());
             else {
                 redraw = false;
@@ -391,9 +409,13 @@ public class FocusController {
                 gameController.setRedraw();
             }
         }
+    }
 
-        //todo : -Modal (fight, victory, defeat, lvlComplete)
-        //
+    private void command_log() {
+        //Map.Tile tile = map.getTile(hero.getX(), hero.getY());
+
+        log.addSimpleText(hero.getPoint_to_distribute()+" point to distribute");
+
     }
 
 
@@ -558,14 +580,14 @@ public class FocusController {
             } else if (rpgView.getModal() instanceof Block_Victory) {
                 int res = gestionFocusModal(2);
 
-                if (res != -1) rpgView.setModal(null);
+                if (res != -1) setModal(null);
                 return;
 
             } else if (rpgView.getModal() instanceof Block_Defeat) {
                 int res = gestionFocusModal(2);
 
                 if (res != -1) {
-                    rpgView.setModal(null);
+                    setModal(null);
                     gameController.initGame();
                 }
                 return;
@@ -583,7 +605,7 @@ public class FocusController {
                     hero.setPoint_to_distribute(hero.getPoint_to_distribute() - 1);
 
                     if (hero.getPoint_to_distribute() == 0)
-                        rpgView.setModal(null);
+                        setModal(null);
 
                 }
                 return;
@@ -593,12 +615,12 @@ public class FocusController {
                 if (res != -1) {
 
                     if (selected == 1 && Math.random() > 0.5) {
-                        rpgView.setModal(null);
+                        setModal(null);
                         return;
                     }
 
                     //Fight
-                    rpgView.setModal(((Block_LvlChooseFight) rpgView.getModal()).getBlock_fight());
+                    setModal(((Block_LvlChooseFight) rpgView.getModal()).getBlock_fight());
                     return;
                 }
             } else {
@@ -616,6 +638,9 @@ public class FocusController {
         if (input.isIs_tab()) {
             idFocus++;
             idFocus %= 3;
+            for (int i = 0; i < rpgView.getBlockRPGS().size(); i++) {
+                rpgView.getBlockRPGS().get(i).setSelected(selected);
+            }
         }
 
     }

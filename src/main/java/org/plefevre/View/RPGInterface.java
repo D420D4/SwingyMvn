@@ -1,17 +1,15 @@
 package org.plefevre.View;
 
-import org.plefevre.Animation;
-import org.plefevre.Color;
 import org.plefevre.Model.Hero;
 import org.plefevre.Model.Map;
-import org.plefevre.Tools;
+import org.plefevre.Controller.Tools;
 
 import java.util.ArrayList;
 
 import static java.lang.Math.max;
 
 import static org.plefevre.Controller.FocusController.*;
-import static org.plefevre.TerminalSize.getTerminalSize;
+import static org.plefevre.View.TerminalSize.getTerminalSize;
 import static org.plefevre.View.Smiley.smileyMap;
 
 public class RPGInterface {

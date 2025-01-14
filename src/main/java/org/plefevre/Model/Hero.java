@@ -1,10 +1,9 @@
 package org.plefevre.Model;
 
-import org.plefevre.Effect;
-import org.plefevre.Game;
-import org.plefevre.View.Block_LvlComplete;
-
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.sql.*;
 import java.util.ArrayList;
 
 import static java.lang.Math.max;
@@ -50,6 +49,19 @@ public class Hero {
     }
 
 
+    public Hero(int id, String name, String className, int lvl, int experience, int attack, int defense, int hit_point, int current_weapon_id, int current_armor_id, int current_helm_id) {
+        this.name = name;
+        this.className = className;
+        this.id = id;
+        this.lvl = lvl;
+        this.experience = experience;
+        this.attack = attack;
+        this.defense = defense;
+        this.hit_point = hit_point;
+        this.current_weapon = loadArtifactById(current_weapon_id);
+        this.current_armor = loadArtifactById(current_armor_id);
+        this.current_helm = loadArtifactById(current_helm_id);
+    }
 
     public int getAttack() {
         int att = 2 + (lvl + attack - 1) * 3;
@@ -68,6 +80,81 @@ public class Hero {
         for (Effect effect : effects) def += effect.getDefense() * 3;
 
         return def;
+    }
+
+    public void saveHero() {
+
+        Connection connection = DatabaseSetup.getConnection();
+
+
+        String saveHeroQuery = """
+                INSERT INTO Hero (id, name, class_name, lvl, experience, attack, defense, hit_point, current_weapon, current_armor, current_helm)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON DUPLICATE KEY UPDATE
+                    name = VALUES(name),
+                    class_name = VALUES(class_name),
+                    lvl = VALUES(lvl),
+                    experience = VALUES(experience),
+                    attack = VALUES(attack),
+                    defense = VALUES(defense),
+                    hit_point = VALUES(hit_point),
+                    current_weapon = VALUES(current_weapon),
+                    current_armor = VALUES(current_armor),
+                    current_helm = VALUES(current_helm);""";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(saveHeroQuery, Statement.RETURN_GENERATED_KEYS)) {
+            preparedStatement.setObject(1, getId() == 0 ? null : getId(), Types.INTEGER);
+            preparedStatement.setString(2, getName());
+            preparedStatement.setString(3, getClassName());
+            preparedStatement.setInt(4, getLvl());
+            preparedStatement.setInt(5, getExperience());
+            preparedStatement.setInt(6, getAttackPoint());
+            preparedStatement.setInt(7, getDefensePoint());
+            preparedStatement.setInt(8, getHit_point());
+            preparedStatement.setObject(9, getCurrent_weapon().getId(), Types.INTEGER);
+            preparedStatement.setObject(10, getCurrent_armor().getId(), Types.INTEGER);
+            preparedStatement.setObject(11, getCurrent_helm().getId(), Types.INTEGER);
+            preparedStatement.executeUpdate();
+
+            if (getId() == 0) {
+                try (ResultSet generatedKeys = preparedStatement.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        setId(generatedKeys.getInt(1));
+                    }
+                }
+            }
+
+            saveInventory();
+
+        } catch (SQLException e) {
+
+        }
+    }
+
+    public void saveInventory() {
+        Connection connection = DatabaseSetup.getConnection();
+
+        String deleteInventoryQuery = "DELETE FROM HeroInventory WHERE hero_id = ?";
+        String saveInventoryQuery = "INSERT INTO HeroInventory (hero_id, artifact_id) VALUES (?, ?)";
+
+        try (PreparedStatement deleteStatement = connection.prepareStatement(deleteInventoryQuery)) {
+            deleteStatement.setInt(1, getId());
+            deleteStatement.executeUpdate();
+        } catch (SQLException e) {
+
+        }
+
+        try (PreparedStatement saveStatement = connection.prepareStatement(saveInventoryQuery)) {
+            for (Artifact artifact : inventory) {
+                if(artifact == null) continue;
+                saveStatement.setInt(1, getId());
+                saveStatement.setInt(2, artifact.getId());
+                artifact.saveArtifact();
+                saveStatement.executeUpdate();
+            }
+        } catch (SQLException e) {
+
+        }
     }
 
     public static void saveHeroes() {
@@ -99,49 +186,82 @@ public class Hero {
     }
 
     public static void loadHeroes() {
-        File file = new File(FILE_SAVE);
+        Connection connection = DatabaseSetup.getConnection();
 
-        if (!file.exists()) {
-            return;
-        }
+        String loadHeroesQuery = "SELECT * FROM Hero";
 
-        heroes.clear();
-        try (BufferedReader reader = new BufferedReader(new FileReader(FILE_SAVE))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] data = line.split(",");
-                String name = data[0];
-                String className = data[1];
-                int level = Integer.parseInt(data[2]);
-                int experience = Integer.parseInt(data[3]);
-                int attack = Integer.parseInt(data[4]);
-                int defense = Integer.parseInt(data[5]);
-                int hit_point = Integer.parseInt(data[6]);
-
-                Hero hero = new Hero(name, className);
-
-                hero.lvl = level;
-                hero.experience = experience;
-                hero.attack = attack;
-                hero.defense = defense;
-                hero.hit_point = hit_point;
-
-                hero.current_weapon = !data[7].equals("null") ? Artifact.fromString(data[7]) : null;
-                hero.current_armor = !data[8].equals("null") ? Artifact.fromString(data[8]) : null;
-                hero.current_helm = !data[9].equals("null") ? Artifact.fromString(data[9]) : null;
-
-                // Load inventory
-                String[] inventoryItems = data[10].split(";");
-                for (int i = 0; i < inventoryItems.length; i++) {
-                    hero.inventory[i] = !inventoryItems[i].equals("null") ? Artifact.fromString(inventoryItems[i]) : null;
-                }
-                hero.setId(heroes.size());
+        try (Statement statement = connection.createStatement(); ResultSet resultSet = statement.executeQuery(loadHeroesQuery)) {
+            heroes.clear();
+            while (resultSet.next()) {
+                Hero hero = new Hero(
+                        resultSet.getInt("id"),
+                        resultSet.getString("name"),
+                        resultSet.getString("class_name"),
+                        resultSet.getInt("lvl"),
+                        resultSet.getInt("experience"),
+                        resultSet.getInt("attack"),
+                        resultSet.getInt("defense"),
+                        resultSet.getInt("hit_point"),
+                        resultSet.getInt("current_weapon"),
+                        resultSet.getInt("current_armor"),
+                        resultSet.getInt("current_helm")
+                );
+                loadHeroInventory(hero);
                 heroes.add(hero);
             }
-        } catch (IOException e) {
-            System.out.println("Error while loading heroes : " + e.getMessage());
+            System.out.println("Heroes loaded successfully.");
+        } catch (SQLException e) {
+            System.err.println("Error while loading heroes: " + e.getMessage());
         }
     }
+
+    public static void loadHeroInventory(Hero hero) {
+        Connection connection = DatabaseSetup.getConnection();
+
+        String loadInventoryQuery = "SELECT * FROM HeroInventory WHERE hero_id = ?";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(loadInventoryQuery)) {
+            preparedStatement.setInt(1, hero.getId());
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                while (resultSet.next()) {
+                    int artifactId = resultSet.getInt("artifact_id");
+                    Artifact artifact = loadArtifactById(artifactId);
+                    hero.addToInventory(artifact);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error while loading hero inventory: " + e.getMessage());
+        }
+    }
+
+    public static Artifact loadArtifactById(int artifactId) {
+        Connection connection = DatabaseSetup.getConnection();
+
+        String loadArtifactQuery = "SELECT * FROM Artifact WHERE id = ?";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(loadArtifactQuery)) {
+            preparedStatement.setInt(1, artifactId);
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    return new Artifact(
+                            resultSet.getInt("id"),
+                            resultSet.getString("name"),
+                            resultSet.getInt("type"),
+                            resultSet.getInt("lvl"),
+                            resultSet.getInt("class_destination"),
+                            resultSet.getInt("attack"),
+                            resultSet.getInt("defense"),
+                            resultSet.getString("ascii"),
+                            resultSet.getString("ascii_color")
+                    );
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error while loading artifact: " + e.getMessage());
+        }
+        return null;
+    }
+
 
 
     public static ArrayList<Hero> getHeroesSaved() {

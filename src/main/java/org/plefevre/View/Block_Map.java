@@ -1,8 +1,6 @@
 package org.plefevre.View;
 
-import org.plefevre.Game;
 import org.plefevre.Model.Hero;
-import org.plefevre.Input;
 import org.plefevre.Model.Map;
 
 import static java.lang.Math.max;

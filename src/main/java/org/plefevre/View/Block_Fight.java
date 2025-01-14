@@ -1,6 +1,6 @@
 package org.plefevre.View;
 
-import org.plefevre.ConstructLog;
+import org.plefevre.Controller.ConstructLog;
 import org.plefevre.Model.Hero;
 import org.plefevre.Model.Log;
 import org.plefevre.Model.Map;

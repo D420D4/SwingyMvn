@@ -77,7 +77,7 @@ public class Artifact {
 
         String saveArtifactQuery = """
             INSERT INTO Artifact (id, name, type, lvl, class_destination, attack, defense, ascii, ascii_color)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON DUPLICATE KEY UPDATE
                 name = VALUES(name),
                 type = VALUES(type),

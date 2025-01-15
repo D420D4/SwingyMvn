@@ -52,7 +52,6 @@ public class Block_Map extends BlockRPG {
                 if (tile.isMountain()) col = 27;
                 if (tile.isWater()) col = 36;
 
-//                buffer[y][x] = (char) ('0' + tile.v);
                 int typ = tile.getType_tile();
 
                 if (hero.getX() == j && hero.getY() == i) {

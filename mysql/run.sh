@@ -32,22 +32,20 @@ case $COMMAND in
     ;;
   show-db)
     if [ "$(docker ps -q -f name=$CONTAINER_NAME)" ]; then
-      echo "Displaying database content..."
-      docker exec -i $CONTAINER_NAME mysql -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" -D "$MYSQL_DATABASE" -e "SHOW TABLES;"
+      docker exec -i $CONTAINER_NAME mysql -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" -D "$MYSQL_DATABASE" -e "SHOW TABLES;"  2>/dev/null
     else
       echo "Error: MySQL container is not running."
     fi
     ;;
   show-all)
       if [ "$(docker ps -q -f name=$CONTAINER_NAME)" ]; then
-        echo "Displaying content of all tables in the database..."
-        TABLES=$(docker exec -i $CONTAINER_NAME mysql -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" -D "$MYSQL_DATABASE" -e "SHOW TABLES;" | awk 'NR>1')
+        TABLES=$(docker exec -i $CONTAINER_NAME mysql -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" -D "$MYSQL_DATABASE" -e "SHOW TABLES;"  2>/dev/null | awk 'NR>1')
         if [ -z "$TABLES" ]; then
           echo "No tables found in the database."
         else
           for TABLE in $TABLES; do
             echo "Content of table: $TABLE"
-            docker exec -i $CONTAINER_NAME mysql -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" -D "$MYSQL_DATABASE" -e "SELECT * FROM $TABLE;"
+            docker exec -i $CONTAINER_NAME mysql -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" -D "$MYSQL_DATABASE" -e "SELECT * FROM $TABLE;" 2>/dev/null
             echo "--------------------------------------------------"
           done
         fi
@@ -57,17 +55,23 @@ case $COMMAND in
       ;;
     clear-db)
         if [ "$(docker ps -q -f name=$CONTAINER_NAME)" ]; then
-          echo "Deleting all tables in the database..."
-          TABLES=$(docker exec -i $CONTAINER_NAME mysql -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" -D "$MYSQL_DATABASE" -e "SHOW TABLES;" | awk 'NR>1')
-          if [ -z "$TABLES" ]; then
-            echo "No tables to delete in the database."
-          else
-            for TABLE in $TABLES; do
-              echo "Dropping table: $TABLE"
-              docker exec -i $CONTAINER_NAME mysql -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" -D "$MYSQL_DATABASE" -e "DROP TABLE $TABLE;"
-            done
-            echo "All tables have been deleted."
-          fi
+          # Tables to delete in a specific order
+                PRIORITY_TABLES=("HeroInventory" "Artifact" "Hero")
+
+                # Delete priority tables first
+                for TABLE in "${PRIORITY_TABLES[@]}"; do
+                  echo "Dropping table: $TABLE"
+                  docker exec -i $CONTAINER_NAME mysql -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" -D "$MYSQL_DATABASE" -e "DROP TABLE IF EXISTS $TABLE;"
+                done
+
+                # Delete any remaining tables
+                OTHER_TABLES=$(docker exec -i $CONTAINER_NAME mysql -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" -D "$MYSQL_DATABASE" -e "SHOW TABLES;" | awk 'NR>1')
+                for TABLE in $OTHER_TABLES; do
+                  echo "Dropping table: $TABLE"
+                  docker exec -i $CONTAINER_NAME mysql -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" -D "$MYSQL_DATABASE" -e "DROP TABLE IF EXISTS $TABLE;"
+                done
+
+                echo "All tables have been deleted."
         else
           echo "Error: MySQL container is not running."
         fi
@@ -82,7 +86,7 @@ case $COMMAND in
     fi
     ;;
   *)
-    echo "Usage: $0 {start|stop|status|logs|show-db|query}"
+    echo "Usage: $0 {start|stop|status|logs|show-db|show-all|clear-db|query}"
     exit 1
     ;;
 esac

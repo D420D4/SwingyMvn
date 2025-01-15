@@ -13,38 +13,44 @@ import static org.plefevre.Model.DatabaseSetup.*;
 public class Main {
     public static void main(String[] args) {
 
+        if (args.length != 1) {
+            System.err.println("Usage: java -jar swingy.jar <gui|console>");
+            System.exit(1);
+        }
+        String mode = args[0].toLowerCase();
+        boolean guiMode = false;
+        if (mode.equals("gui")) {
+            guiMode = true;
+        } else if (!mode.equals("console")) {
+            System.err.println("Usage: java -jar swingy.jar <gui|console>");
+            System.exit(1);
+        }
+
         initConnection();
         createTable();
 
-        Hero.loadHeroes();
-
         Input input = new Input();
 
-        Menu_Choose_Hero menuView = new Menu_Choose_Hero(input);
-        MenuController menuController = new MenuController(menuView, input);
-        Hero chosenHero = menuController.runMenu();
+        Hero chosenHero;
+        chosenHero = Hero.loadHeroById(2);
+/*
+        if (guiMode) {
+            MenuController menuController = new MenuController(new Menu_Choose_Hero_GUI());
+            chosenHero = menuController.runMenuGui();
+        } else {
+            MenuController menuController = new MenuController(new Menu_Choose_Hero(input), input);
+            chosenHero = menuController.runMenuConsole();
+        }
+*/
         if (chosenHero == null) {
             System.out.println("No hero selected. Exiting.");
             return;
         }
 
 
-        RPGInterface rpgInterface = new RPGInterface();
-        Log log = new Log();
-
-        ArrayList<BlockRPG> blockRPGS = new ArrayList<>();
-
-        blockRPGS.add(new Block_Hero(4, 0, 1, 2));
-        blockRPGS.add(new Block_Inventaire(4, 2, 1, 3));
-        blockRPGS.add(new Block_Map(0, 0, 4, 4));
-        blockRPGS.add(new Block_Log(0, 4, 4, 1, log));
-
-        BlockRPG.sort(blockRPGS);
-        rpgInterface.setBlockRPGS(blockRPGS);
-
-
-        GameController gameController = new GameController(rpgInterface, input, log);
+        GameController gameController = new GameController(input);
         gameController.initGame(chosenHero);
+        gameController.setGuiMode(guiMode);
         gameController.run();
 
         closeConnection();

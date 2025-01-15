@@ -84,8 +84,8 @@ public class DatabaseSetup {
                         class_destination INT DEFAULT -1,
                         attack INT DEFAULT 0,
                         defense INT DEFAULT 0,
-                        ascii VARCHAR(36),
-                        ascii_color VARCHAR(36),
+                        ascii VARCHAR(30) NOT NULL,
+                        ascii_color VARCHAR(120) NOT NULL
                     );
                 """;
 
@@ -104,7 +104,6 @@ public class DatabaseSetup {
                     CREATE TABLE IF NOT EXISTS HeroInventory (
                         hero_id INT NOT NULL,
                         artifact_id INT NOT NULL,
-                        PRIMARY KEY (hero_id, artifact_id),
                         FOREIGN KEY (hero_id) REFERENCES Hero(id),
                         FOREIGN KEY (artifact_id) REFERENCES Artifact(id)
                     );

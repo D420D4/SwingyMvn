@@ -5,6 +5,7 @@ import org.plefevre.Controller.NoiseGenerator;
 import java.util.Random;
 
 import static java.lang.Math.abs;
+import static java.lang.Math.max;
 
 public class Map {
     int size;
@@ -19,6 +20,8 @@ public class Map {
     public Map(int lvl, int seed) {
         this.lvl = lvl;
         size = (lvl - 1) * 5 + 10 - 1;
+
+
         tiles = new Tile[size][size];
         generateMap(seed);
     }
@@ -62,7 +65,8 @@ public class Map {
                 }
 
                 if (!monsterAround && !tile.water && random.nextDouble() < PROBA_GEN_MONSTER) {
-                    tile.monster = new Monster(lvl - 2 + random.nextInt(5) + (tile.mountain ? 2 : 0));  // Fonction pour générer des monstres aléatoires
+                    int lv = lvl - 2 + random.nextInt(5) + (tile.mountain ? 2 : 0);
+                    tile.monster = new Monster(max(1,lv));
                 }
 
                 tiles[i][j] = tile;

@@ -1,8 +1,5 @@
 package org.plefevre.Model;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
 
@@ -11,9 +8,6 @@ import static java.lang.Math.min;
 import static org.plefevre.Model.Artifact.loadArtifactById;
 
 public class Hero {
-
-    static final String FILE_SAVE = "heroes.txt";
-    static ArrayList<Hero> heroes = new ArrayList<>();
 
     public final static int INVENTORY_SIZE = 10;
 
@@ -65,6 +59,7 @@ public class Hero {
     }
 
     public static Hero loadHeroById(int heroId) {
+        if (heroId <= 0) return null;
         Connection connection = DatabaseSetup.getConnection();
 
         String loadArtifactQuery = "SELECT * FROM Hero WHERE id = ?";
@@ -73,7 +68,7 @@ public class Hero {
             preparedStatement.setInt(1, heroId);
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 if (resultSet.next()) {
-                    return new Hero(
+                    Hero hero = new Hero(
                             resultSet.getInt("id"),
                             resultSet.getString("name"),
                             resultSet.getString("class_name"),
@@ -86,6 +81,8 @@ public class Hero {
                             resultSet.getInt("current_armor"),
                             resultSet.getInt("current_helm")
                     );
+                    hero.loadHeroInventory();
+                    return hero;
                 }
             }
         } catch (SQLException e) {
@@ -117,6 +114,9 @@ public class Hero {
 
         Connection connection = DatabaseSetup.getConnection();
 
+        if (getCurrent_armor() != null) getCurrent_armor().saveArtifact();
+        if (getCurrent_helm() != null) getCurrent_helm().saveArtifact();
+        if (getCurrent_weapon() != null) getCurrent_weapon().saveArtifact();
 
         String saveHeroQuery = """
                 INSERT INTO Hero (id, name, class_name, lvl, experience, attack, defense, hit_point, current_weapon, current_armor, current_helm)
@@ -188,13 +188,15 @@ public class Hero {
         }
     }
 
-    public static void loadHeroes() {
+    public static ArrayList<Hero> getAllHeroes() {
         Connection connection = DatabaseSetup.getConnection();
 
         String loadHeroesQuery = "SELECT * FROM Hero";
 
+        ArrayList<Hero> heroes = new ArrayList<>();
+
         try (Statement statement = connection.createStatement(); ResultSet resultSet = statement.executeQuery(loadHeroesQuery)) {
-            heroes.clear();
+
             while (resultSet.next()) {
                 Hero hero = new Hero(
                         resultSet.getInt("id"),
@@ -209,40 +211,35 @@ public class Hero {
                         resultSet.getInt("current_armor"),
                         resultSet.getInt("current_helm")
                 );
-                loadHeroInventory(hero);
+                hero.loadHeroInventory();
                 heroes.add(hero);
             }
             System.out.println("Heroes loaded successfully.");
         } catch (SQLException e) {
             throw new RuntimeException("Error loading heroes : " + e.getMessage());
         }
+
+        return heroes;
     }
 
-    public static void loadHeroInventory(Hero hero) {
+    public void loadHeroInventory() {
         Connection connection = DatabaseSetup.getConnection();
 
         String loadInventoryQuery = "SELECT * FROM HeroInventory WHERE hero_id = ?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(loadInventoryQuery)) {
-            preparedStatement.setInt(1, hero.getId());
+            preparedStatement.setInt(1, getId());
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 while (resultSet.next()) {
                     int artifactId = resultSet.getInt("artifact_id");
                     Artifact artifact = loadArtifactById(artifactId);
-                    hero.addToInventory(artifact);
+                    addToInventory(artifact);
                 }
             }
         } catch (SQLException e) {
             throw new RuntimeException("Error while loading Inventory : " + e.getMessage());
         }
     }
-
-
-
-    public static ArrayList<Hero> getHeroesSaved() {
-        return heroes;
-    }
-
 
     public void setName(String name) {
         this.name = name.replaceAll(",", "");
@@ -300,6 +297,16 @@ public class Hero {
         }
     }
 
+    public void use(Artifact artifact)
+    {
+        if(artifact == null) return;
+
+        if(artifact.getType() == Artifact.TYPE_POTION && artifact.getLvl() <= lvl)
+        {
+            artifact.use(this);
+            throwArtifact(artifact);
+        }
+    }
     public void use(int id_inv) {
         if (id_inv < 0 || id_inv >= Hero.INVENTORY_SIZE) return;
 
@@ -307,6 +314,15 @@ public class Hero {
         if (artifact != null && artifact.getType() == Artifact.TYPE_POTION && artifact.getLvl() <= lvl) {
             artifact.use(this);
             inventory[id_inv] = null;
+        }
+    }
+
+    public void equip(Artifact artifact) {
+        for (int i = 0; i<INVENTORY_SIZE; i++){
+            if (inventory[i] == artifact){
+                equip(i);
+                return;
+            }
         }
     }
 
@@ -385,13 +401,11 @@ public class Hero {
                 "Current Helm", (current_helm != null ? current_helm.getName() : "None")
         );
 
-        // Affiche l'art ASCII à gauche et les informations du héros à droite
         System.out.println("╔════════════════╦═══════════════════════════════╗");
         String[] artLines = asciiArt.split("\n");
         String[] infoLines = heroInfo.split("\n");
         int maxLines = max(artLines.length, infoLines.length);
 
-        // Imprime chaque ligne de l'art ASCII avec l'info correspondante
         for (int i = 0; i < maxLines; i++) {
             String artLine = i < artLines.length ? artLines[i] : "";
             String infoLine = i < infoLines.length ? infoLines[i] : "";
@@ -400,7 +414,6 @@ public class Hero {
 
         System.out.println("╠════════════════╩═══════════════════════════════╣");
 
-        // Affiche les artefacts en dessous
         System.out.println(artifacts);
 
         System.out.println("╚════════════════════════════════════════════════╝");
@@ -512,6 +525,16 @@ public class Hero {
         return v;
     }
 
+    public void throwArtifact(Artifact artifact) {
+        if (artifact == null) return;
+
+        for (int i = 0; i < INVENTORY_SIZE; i++) {
+            if (inventory[i] == artifact) {
+                inventory[i] = null;
+                return;
+            }
+        }
+    }
 
     public void throwE(int id) {
         if (id < 0 || id >= Hero.INVENTORY_SIZE)

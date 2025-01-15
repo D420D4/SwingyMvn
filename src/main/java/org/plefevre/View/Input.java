@@ -40,10 +40,10 @@ public class Input {
 
             if (!listen_tap) {
                 terminal.enterRawMode();
-                int c = terminal.reader().read();  // Read a single character from the terminal
+                int c = terminal.reader().read();
                 switch (c) {
-                    case 27: // ESC sequence, typically used for arrow keys
-                        if (terminal.reader().read() == '[') {  // Expecting a sequence starting with ESC + [
+                    case 27:
+                        if (terminal.reader().read() == '[') {
                             int arrowKey = terminal.reader().read();
                             switch (arrowKey) {
                                 case 'A':
@@ -61,14 +61,14 @@ public class Input {
                             }
                         }
                         break;
-                    case '\t': // Tab key
+                    case '\t':
                         is_tab = true;
                         break;
-                    case '\r': // Enter key
+                    case '\r':
                         touch = 5;
                         break;
                     default:
-//                        text += (char) c;
+
                         break;
                 }
 
@@ -89,10 +89,6 @@ public class Input {
                 String ignoredPrefix = "\001"; // Equivalent de LineReader.PROMPT_IGNORED_PREFIX
                 String ignoredSuffix = "\002"; // Equivalent de LineReader.PROMPT_IGNORED_SUFFIX
 
-                // Séquence ANSI pour déplacer le curseur
-//            String moveCursor = "\033[" + 50 + ";" + 5 + "H";
-
-                // Construire le prompt avec la séquence de déplacement du curseur
                 String prompt = "$> ";
 
                 if (moveCursor) {

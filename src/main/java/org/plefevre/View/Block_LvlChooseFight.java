@@ -2,13 +2,16 @@ package org.plefevre.View;
 
 import org.plefevre.Model.Hero;
 import org.plefevre.Model.Map;
+import org.plefevre.Model.Monster;
 
 public class Block_LvlChooseFight extends BlockRPG {
     private int selected = 0;
     private Block_Fight block_fight;
+    private Monster monster;
 
-    public Block_LvlChooseFight() {
+    public Block_LvlChooseFight(Monster monster) {
         this(0, 0, 100, 20);
+        this.monster = monster;
     }
 
 
@@ -39,10 +42,10 @@ public class Block_LvlChooseFight extends BlockRPG {
                    "▐▌   ▗▄█▄▖▝▚▄▞▘▐▌ ▐▌  █       ▄ ", (rw - 34) / 2, 3);
 
         setTextAt(buffer, "You meet a monster. Do you want fight or run?", (rw - 45) / 2, 8);
+        setTextAt(buffer, "Monster is : " + monster.getName() + " ( lvl " + monster.getLvl() + " )", (rw - 45) / 2, 9);
 
         drawButton(buffer, color, rw / 2 - 30, 12, 12, "Fight", (byte) (selected == 0 ? -64 : -16));
         drawButton(buffer, color, rw / 2 + 18, 12, 12, "Try to run", (byte) (selected == 1 ? -64 : -16));
-
 
         return buffer;
     }

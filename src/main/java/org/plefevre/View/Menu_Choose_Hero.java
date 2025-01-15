@@ -15,28 +15,27 @@ public class Menu_Choose_Hero {
 
 
     public void displayWelcome() {
-        System.out.println(Color.BLUE + "Welcome to our great game, please choose or create a Hero" + Color.RESET);
+        System.out.println(MyColor.BLUE + "Welcome to our great game, please choose or create a Hero" + MyColor.RESET);
     }
 
     public void displayHeroes(ArrayList<Hero> heroes) {
-        System.out.println(Color.CYAN + "--------------------------------------------" + Color.RESET);
+        System.out.println(MyColor.CYAN + "--------------------------------------------" + MyColor.RESET);
         if (heroes == null || heroes.isEmpty()) {
-            System.out.println(Color.RED + "You have no Hero created" + Color.RESET);
+            System.out.println(MyColor.RED + "You have no Hero created" + MyColor.RESET);
         } else {
-            System.out.println(Color.GREEN + "List of saved Heroes:" + Color.RESET);
+            System.out.println(MyColor.GREEN + "List of saved Heroes:" + MyColor.RESET);
             for (int i = 0; i < heroes.size(); i++) {
                 Hero hero = heroes.get(i);
-                System.out.println("  [" + Color.YELLOW + i + Color.RESET + "] : "
+                System.out.println("  [" + MyColor.YELLOW + i + MyColor.RESET + "] : "
                         + hero.getClassName().toUpperCase(Locale.ROOT)
                         + " lvl" + hero.getLvl() + " "
                         + hero.getName());
             }
         }
 
-        // Options
         System.out.println();
-        System.out.println(Color.CYAN + "[C]  : Create a Hero" + Color.RESET);
-        System.out.println(Color.CYAN + "[E]  : Exit" + Color.RESET);
+        System.out.println(MyColor.CYAN + "[C]  : Create a Hero" + MyColor.RESET);
+        System.out.println(MyColor.CYAN + "[E]  : Exit" + MyColor.RESET);
     }
 
     public String readInput() {
@@ -50,7 +49,7 @@ public class Menu_Choose_Hero {
     }
 
     public String askHeroName() {
-        System.out.println(Color.GREEN + "Creating a new Hero:" + Color.RESET);
+        System.out.println(MyColor.GREEN + "Creating a new Hero:" + MyColor.RESET);
         System.out.println("Please enter a name for your hero:");
         input.listen();
         return input.getText();
@@ -69,17 +68,17 @@ public class Menu_Choose_Hero {
                 if (classChoice >= 0 && classChoice < classes.length) {
                     return classChoice;
                 } else {
-                    System.out.println(Color.RED + "Invalid class choice. Please select a valid class number." + Color.RESET);
+                    System.out.println(MyColor.RED + "Invalid class choice. Please select a valid class number." + MyColor.RESET);
                 }
             } catch (NumberFormatException e) {
-                System.out.println(Color.RED + "Invalid input. Please enter a number." + Color.RESET);
+                System.out.println(MyColor.RED + "Invalid input. Please enter a number." + MyColor.RESET);
             }
         }
     }
 
     public int askPoints(String attribute, int currentValue, int pointsLeft) {
         while (true) {
-            System.out.println("You have " + Color.YELLOW + pointsLeft + Color.RESET + " points left to distribute.");
+            System.out.println("You have " + MyColor.YELLOW + pointsLeft + MyColor.RESET + " points left to distribute.");
             System.out.println("Enter points to add points " + attribute + " (current: " + currentValue + "):");
             input.listen();
             String inputString =  input.getText();
@@ -88,10 +87,10 @@ public class Menu_Choose_Hero {
                 if (points >= 0 && points <= pointsLeft) {
                     return points;
                 } else {
-                    System.out.println(Color.RED + "Invalid input. You have " + pointsLeft + " points left." + Color.RESET);
+                    System.out.println(MyColor.RED + "Invalid input. You have " + pointsLeft + " points left." + MyColor.RESET);
                 }
             } catch (NumberFormatException e) {
-                System.out.println(Color.RED + "Invalid input. Please enter a valid number." + Color.RESET);
+                System.out.println(MyColor.RED + "Invalid input. Please enter a valid number." + MyColor.RESET);
             }
         }
     }

@@ -1,29 +1,18 @@
 package org.plefevre.Controller;
 
-import org.plefevre.View.Input;
 import org.plefevre.Model.*;
 import org.plefevre.View.*;
 
 import java.util.ArrayList;
 
-import static java.lang.Math.max;
-import static java.lang.Math.min;
-
-import org.plefevre.Model.Map;
-
 public class FocusController {
 
-    private HeroController heroController;
     private GameController gameController;
 
-    private Input input;
+    private final Input input;
     private Hero hero;
-    private Map map;
     private Log log;
-    private Log fightLog;
-    private RPGInterface rpgView;
-
-    private Monster monster = null;
+    private final RPGInterface rpgView;
 
     private int selected = 0;
     private int subSelected = 0;
@@ -41,10 +30,6 @@ public class FocusController {
         this.rpgView = rpgView;
     }
 
-    public void setHeroController(HeroController heroController) {
-        this.heroController = heroController;
-    }
-
     public void setGameController(GameController gameController) {
         this.gameController = gameController;
     }
@@ -53,16 +38,8 @@ public class FocusController {
         this.hero = hero;
     }
 
-    public void setMap(Map map) {
-        this.map = map;
-    }
-
     public void setLog(Log log) {
         this.log = log;
-    }
-
-    public void setFightLog(Log fightLog) {
-        this.fightLog = fightLog;
     }
 
     public void gestionFocusInventaire() {
@@ -200,126 +177,6 @@ public class FocusController {
         return -1;
     }
 
-    private void one_move_fight() {
-        int moveMonster = (int) (Math.random() * 3);
-
-        ConstructLog log = new ConstructLog();
-
-        if (monster.getMana() < 10) moveMonster = 2;
-
-        else if (monster.getMana() >= monster.getMaxMana() * 0.9 && moveMonster == 2)
-            moveMonster = (int) (Math.random() * 2);
-
-
-        if (moveMonster == 2) {
-            monster.setMana(monster.getMana() + 5 + monster.getLvl() * 2);
-
-            log.clean();
-            log.add(monster.getName(), (byte) -1);
-            log.add(" charges its mana.", (byte) 0);
-            fightLog.addTextColor(log);
-        }
-
-        if (selected == 2) {
-            hero.setMana(hero.getMana() + 10 + hero.getLvl() * 3);
-
-            log.clean();
-            log.add(hero.getName(), (byte) -2);
-            log.add(" charges its mana.", (byte) 0);
-            fightLog.addTextColor(log);
-        }
-
-
-        if (selected == 0) {
-            int degat = hero.getAttackFight();
-            int defense = (int) (monster.getDefense() * 0.2);
-            if (moveMonster == 1)
-                defense = (int) (monster.getDefense() + (4 + monster.getLvl() / 2) * (Math.random() - 0.5));
-            int mana_consom = (int) (degat * 0.8);
-
-            mana_consom = max(1, min(mana_consom, hero.getMaxMana() / 4));
-
-            log.clean();
-            log.add(hero.getName(), (byte) -2);
-            log.add(" attacks and deals ", (byte) 0);
-            log.add(degat + "", (byte) -1);
-            log.add(" but ", (byte) 0);
-            log.add(monster.getName(), (byte) -1);
-            log.add(" block ", (byte) 0);
-            log.add(defense + "", (byte) -2);
-            log.add(" and get finally ", (byte) 0);
-            log.add(max(0, degat - defense) + "", (byte) -1);
-            log.add(" damage ", (byte) 0);
-            fightLog.addTextColor(log);
-
-            if (hero.removeMana(mana_consom)) {
-                degat = max(0, degat - defense);
-                monster.removePv(degat);
-            } else {
-                log.clean();
-                log.add(hero.getName(), (byte) -2);
-                log.add(" has not enought mana.", (byte) 0);
-                fightLog.addTextColor(log);
-            }
-        }
-
-        if (moveMonster == 0 && monster.getPv() > 0) {
-            int degat = (int) (monster.getAttack() + (4 + monster.getLvl() / 2) * (Math.random() - 0.5));
-            int defense = (int) ((int) hero.getDefense() * 0.2);
-            if (selected == 1) {
-                defense = hero.getDefenseFight();
-            }
-
-            int mana_consom = (int) (degat * 0.75);
-
-
-            if (monster.getMana() >= mana_consom) {
-                log.clean();
-                log.add(monster.getName(), (byte) -1);
-                log.add(" attacks and deals ", (byte) 0);
-                log.add(degat + "", (byte) -1);
-                log.add(" but ", (byte) 0);
-                log.add(hero.getName(), (byte) -2);
-                log.add(" block ", (byte) 0);
-                log.add(defense + "", (byte) -2);
-                log.add(" and get finally ", (byte) 0);
-                log.add(max(0, degat - defense) + "", (byte) -1);
-                log.add(" damage ", (byte) 0);
-                fightLog.addTextColor(log);
-
-                monster.removeMana(mana_consom);
-                degat = max(0, degat - defense);
-                hero.removePv(degat);
-
-            } else {
-                log.clean();
-                log.add(monster.getName(), (byte) -1);
-                log.add(" has not enought mana.", (byte) 0);
-                fightLog.addTextColor(log);
-            }
-        }
-
-
-        if (hero.getPv() <= 0) {
-            input.reload();
-            setModal(new Block_Defeat());
-        }
-        if (monster.getPv() <= 0) {
-            ArrayList<Artifact> artifacts = monster.getArtifact();
-            int xp = monster.xpGet();
-
-            hero.addXp(xp);
-            for (Artifact artifact : artifacts) {
-                hero.addToInventory(artifact);
-            }
-
-            input.reload();
-            Block_Victory modal = new Block_Victory();
-            modal.setXp(xp);
-            modal.artifacts = artifacts;
-            setModal(modal);
-        }
-    }
 
     private void setModal(BlockRPG modal) {
         rpgView.setModal(modal);
@@ -391,31 +248,21 @@ public class FocusController {
             else if (text.equals("up") || text.equals("u")) gameController.moveHero(0, -1);
             else if (text.equals("right") || text.equals("r")) gameController.moveHero(1, 0);
             else if (text.equals("left") || text.equals("l")) gameController.moveHero(-1, 0);
-            else if (text.equals("help") || text.equals("h")) showHelp();
+            else if (text.startsWith("help") || text.startsWith("h")) showHelp(text);
+            else if (text.equals("guimode")) gameController.setGuiMode(true);
             else if (text.startsWith("show")) command_show(text);
             else if (text.startsWith("equip")) command_equip(text);
             else if (text.startsWith("unequip")) command_unequip(text);
             else if (text.startsWith("throw")) command_throw(text);
             else if (text.startsWith("use")) command_use(text);
-            else if (text.startsWith("log")) command_log();
             else if (text.startsWith("dimension")) log.addSimpleText(rpgView.getH() + " * " + rpgView.getW());
             else {
                 redraw = false;
                 log.addTextColorWord("Command not found, try 'help'", "1 1 1 1 -1");
             }
 
-            if (redraw) {
-                input.setText("");
-                gameController.setRedraw();
-            }
+            if (redraw) input.setText("");
         }
-    }
-
-    private void command_log() {
-        //Map.Tile tile = map.getTile(hero.getX(), hero.getY());
-
-        log.addSimpleText(hero.getPoint_to_distribute()+" point to distribute");
-
     }
 
 
@@ -552,8 +399,48 @@ public class FocusController {
     }
 
 
-    public void showHelp() {
+    public void showHelp(String text) {
+        int page = 0;
+        String[] tt = text.split(" ");
 
+        if(tt.length == 2) {
+            text = tt[1];
+            try {
+                if (!text.isEmpty())
+                    page = Integer.parseInt(text);
+
+            } catch (NumberFormatException e) {
+                log.addTextColor("Not a number [" + text + "]", (byte) 1);
+            }
+        }
+
+        if(tt.length > 2) {
+            log.addTextColorWord("Usage: help [page]", "1 -1 -1");
+            return;
+        }
+
+        if (page == 0) {
+            log.addTextColorWord("Available Commands:", "-3");
+            log.addTextColorWord("- up/u: Move hero up", "-3 -3 2");
+            log.addTextColorWord("- down/d: Move hero down", "-3 -3 2");
+            log.addTextColorWord("- left/l: Move hero left", "-3 -3 2");
+            log.addTextColorWord("- right/r: Move hero right", "-3 -3 2");
+            log.addTextColorWord("- help/h [page]: Display this help message", "-3 -3 3 2");
+        }
+
+        if (page == 1) {
+            log.addTextColorWord("- equip [id_inventory]: Equip an item from the inventory", "-3 -3 3 2");
+            log.addTextColorWord("- unequip [weapon|armor|helm]: Unequip a specific type of item", "-3 -3 3 2");
+            log.addTextColorWord("- use [id_inventory]: Use a consumable item (potion)", "-3 -3 3 2");
+            log.addTextColorWord("- throw [id_inventory]: Discard an item from the inventory", "-3 -3 3 2");
+            log.addTextColorWord("- show [id_inventory]: Show details of an item in the inventory", "-3 -3 3 2");
+            log.addTextColorWord("- dimension: Show current game dimensions", "-3 -3 2");
+        }
+
+        if (page == 2) {
+            log.addTextColorWord("- guimode: Enable GUI mode", "-3 -3 2");
+            log.addTextColorWord("- exit/quit: Exit the game", "-3 -3 2");
+        }
     }
 
     public void focus() {
@@ -573,7 +460,7 @@ public class FocusController {
             } else if (rpgView.getModal() instanceof Block_Fight) {
                 int res = gestionFocusModal(3);
 
-                if (res != -1) one_move_fight();
+                if (res != -1) gameController.one_move_fight(selected);
 
                 return;
 
@@ -647,9 +534,5 @@ public class FocusController {
 
     public int getFocusId() {
         return idFocus;
-    }
-
-    public void setMonster(Monster monster) {
-        this.monster = monster;
     }
 }

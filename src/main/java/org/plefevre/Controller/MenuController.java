@@ -3,27 +3,105 @@ package org.plefevre.Controller;
 import org.plefevre.View.Input;
 import org.plefevre.Model.Hero;
 import org.plefevre.View.Menu_Choose_Hero;
+import org.plefevre.View.Menu_Choose_Hero_GUI;
 
 import java.util.ArrayList;
 
 public class MenuController {
 
     private Menu_Choose_Hero menuView;
+    private Menu_Choose_Hero_GUI menuView_gui;
     private ArrayList<Hero> heroes;
     private Hero selectedHero;
     private Input input;
 
     public MenuController(Menu_Choose_Hero menuView, Input input) {
         this.menuView = menuView;
-        this.heroes = Hero.getHeroesSaved();
+        this.heroes = Hero.getAllHeroes();
         this.input = input;
 
         input.setMoveCursor(false);
         input.setListen_tap(true);
     }
 
+    public MenuController(Menu_Choose_Hero_GUI menuChooseHeroGui) {
+        this.menuView_gui = menuChooseHeroGui;
+        this.heroes = Hero.getAllHeroes();
+    }
 
-    public Hero runMenu() {
+    public Hero runMenuGui() {
+        final Object lock = new Object();
+
+        menuView_gui.addChooseButtonListener(e -> {
+            this.heroes = Hero.getAllHeroes();
+            menuView_gui.updateHeroList(heroes);
+            menuView_gui.setView("CHOOSE_HERO");
+        });
+
+        menuView_gui.addCreateButtonListener(e -> {
+            menuView_gui.setView("CREATE_HERO");
+        });
+
+        menuView_gui.addGenerateButtonListener(e -> {
+
+            String name = menuView_gui.getCreateHeroName();
+            String className = menuView_gui.getCreateHeroClass();
+            int attack = menuView_gui.getCreateHeroAttack();
+            int defense = menuView_gui.getCreateHeroDefense();
+            int hitPoints = menuView_gui.getCreateHeroHitPoints();
+
+            if (name.isEmpty()) {
+                menuView_gui.showError("Please fill in all fields.");
+                return;
+            }
+
+            if (attack + defense + hitPoints > 5) {
+                menuView_gui.showError("You have used more than 5 points. Please try again.");
+                return;
+            } else if (attack + defense + hitPoints < 5) {
+                menuView_gui.showError("You have used less than 5 points. Please try again.");
+                return;
+            }
+
+
+            Hero newHero = new Hero(name, className);
+            newHero.setAttack(attack);
+            newHero.setDefense(defense);
+            newHero.setHit_point(hitPoints);
+            newHero.saveHero();
+
+            menuView_gui.showSuccess("Hero created successfully.");
+
+
+            menuView_gui.setView("MENU");
+        });
+
+        menuView_gui.addSelectButtonListener(e -> {
+            int index = menuView_gui.getHeroIdSelected();
+            selectedHero = Hero.loadHeroById(index);
+            if (selectedHero != null) {
+                synchronized (lock) {
+                    lock.notify();
+                }
+            }else {
+                menuView_gui.showError("Invalid choice. Please select a valid Hero.");
+            }
+        });
+
+        synchronized (lock) {
+            try {
+                lock.wait();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                e.printStackTrace();
+            }
+        }
+        menuView_gui.close();
+
+        return selectedHero;
+    }
+
+    public Hero runMenuConsole() {
         boolean running = true;
         while (running) {
             menuView.displayWelcome();
@@ -71,7 +149,6 @@ public class MenuController {
                 menuView.displayMessage("Invalid name. Please use only letters and numbers.");
             }
         } while (!isValidName);
-
 
 
         String[] classes = {"Warrior", "Mage", "Archey"};

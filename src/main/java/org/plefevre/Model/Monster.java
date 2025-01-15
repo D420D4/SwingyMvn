@@ -162,9 +162,6 @@ public class Monster {
 
         if (Math.random() > 0.4f) artifacts.add(getOneArtifact());
         if (Math.random() > 0.75f) artifacts.add(getOneArtifact());
-//        artifacts.add(getOneArtifact());
-//        artifacts.add(getOneArtifact());
-
         return artifacts;
     }
 

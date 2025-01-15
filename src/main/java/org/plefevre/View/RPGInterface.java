@@ -1,6 +1,7 @@
 package org.plefevre.View;
 
 import org.plefevre.Model.Hero;
+import org.plefevre.Model.Log;
 import org.plefevre.Model.Map;
 import org.plefevre.Controller.Tools;
 
@@ -28,6 +29,20 @@ public class RPGInterface {
 
     final static boolean DISPLAY_TERMINAL = true;
 
+    public  RPGInterface(Log log) {
+
+        ArrayList<BlockRPG> blockRPGS = new ArrayList<>();
+
+        blockRPGS.add(new Block_Hero(4, 0, 1, 2));
+        blockRPGS.add(new Block_Inventaire(4, 2, 1, 3));
+        blockRPGS.add(new Block_Map(0, 0, 4, 4));
+        blockRPGS.add(new Block_Log(0, 4, 4, 1, log));
+
+        BlockRPG.sort(blockRPGS);
+
+        setBlockRPGS(blockRPGS);
+    }
+
     public void update() {
         int[] size = getTerminalSize();
         h = size[0];
@@ -42,11 +57,9 @@ public class RPGInterface {
 
         final_animationOpen = w / 2;
 
-//        for (int i = 0; i < blockRPGS.size(); i++) System.out.println(blockRPGS.get(i));
-        //La hauteur max en bloc
         height_bloc = 0;
         for (BlockRPG bc : blockRPGS) height_bloc = max(height_bloc, bc.getY() + bc.getH());
-        //la largeur max en bloc par y;
+
         width_bloc = new int[height_bloc];
         for (BlockRPG bc : blockRPGS) {
             for (int j = 0; j < bc.getH(); j++)
@@ -56,10 +69,6 @@ public class RPGInterface {
         for (BlockRPG bc : blockRPGS) {
             bc.update(w * bc.getW() / width_bloc[bc.getY()], h * bc.getH() / height_bloc, bc.getX() * w / width_bloc[bc.getY()], bc.getY() * h / height_bloc);
         }
-
-//        System.out.println("Height : " + h + "  Width : " + w);
-//        System.out.println("Width_bloc: " + Tools.arrToString(width_bloc));
-//        System.out.println("height_bloc: " + height_bloc);
 
     }
 
@@ -128,7 +137,7 @@ public class RPGInterface {
         System.out.print("\033[H\033[2J");
         System.out.flush();
 
-        System.out.print(Color.RESET);
+        System.out.print(MyColor.RESET);
 
         StringBuilder outputBuffer = new StringBuilder();
         byte lastC = 100;
@@ -139,9 +148,9 @@ public class RPGInterface {
                 byte bcolor = color[i][j];
                 if (bcolor != lastC) {
 
-                    outputBuffer.append(Color.RESET);
+                    outputBuffer.append(MyColor.RESET);
                     if (bcolor < 0)
-                        outputBuffer.append(Color.BOLD);
+                        outputBuffer.append(MyColor.BOLD);
 
                     lastC = bcolor;
 
@@ -153,8 +162,8 @@ public class RPGInterface {
                     int ind_front = bcolor % 9;
                     int ind_bg = bcolor / 9;
 
-                    if (ind_front > 0) outputBuffer.append(Color.frontColor[ind_front]);
-                    if (ind_bg > 0) outputBuffer.append(Color.backgroundColor[ind_bg]);
+                    if (ind_front > 0) outputBuffer.append(MyColor.frontColor[ind_front]);
+                    if (ind_bg > 0) outputBuffer.append(MyColor.backgroundColor[ind_bg]);
                 }
 
                 char c = buffer[i][j];
@@ -204,7 +213,8 @@ public class RPGInterface {
         for (int i = 0; i < blockRPGS.size(); i++) {
             if (blockRPGS.get(i) instanceof Block_Map && idFocus == FOCUS_MAP) blockRPGS.get(i).setFocus(true);
             if (blockRPGS.get(i) instanceof Block_Log && idFocus == FOCUS_LOG) blockRPGS.get(i).setFocus(true);
-            if (blockRPGS.get(i) instanceof Block_Inventaire && idFocus == FOCUS_INVENTORY) blockRPGS.get(i).setFocus(true);
+            if (blockRPGS.get(i) instanceof Block_Inventaire && idFocus == FOCUS_INVENTORY)
+                blockRPGS.get(i).setFocus(true);
         }
     }
 }

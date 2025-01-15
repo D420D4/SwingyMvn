@@ -54,10 +54,7 @@ public class Block_Inventaire extends BlockRPG {
             if (selected == i && focus) {
                 setBorderColor(x + 2, y + 2, WIDTH_CASE, HEIGHT_CASE, (byte) ((artifact != null ? artifact.getColor() : 0) + 36));
                 setBorderColor(x + 2, y + 2 + HEIGHT_CASE - 2, WIDTH_CASE, 2, (byte) ((artifact != null ? artifact.getColor() : 0) + 36));
-
-
             }
-
         }
 
         int line_y = (int) (Math.ceil(1.0f * Hero.INVENTORY_SIZE / nbCase_per_line) * HEIGHT_CASE + 3);

@@ -119,7 +119,6 @@ public class RPGInterface {
             color = Tools.deepCopyByteArray(color_cpy);
 
             Animation.circleAnimation(buffer, color, animationOpen);
-            System.out.println(animationOpen + "");
             displayOnScreen(buffer, color);
 
             try {

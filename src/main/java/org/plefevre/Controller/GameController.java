@@ -354,6 +354,7 @@ public class GameController {
         }else{
             if(rpgViewGUI != null)
                 rpgViewGUI.close();
+            rpgView.setModal(null);
         }
     }
 

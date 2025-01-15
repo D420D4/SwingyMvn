@@ -102,8 +102,7 @@ public class MenuController {
 
         newHero.displayHero();
 
-        Hero.addHero(newHero);
-        Hero.saveHeroes();
+        newHero.saveHero();
         return newHero;
     }
 

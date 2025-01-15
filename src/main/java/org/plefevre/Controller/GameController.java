@@ -62,9 +62,12 @@ public class GameController {
 
     public void initGame() {
         Hero.loadHeroes();
-        ArrayList<Hero> heroes = Hero.getHeroesSaved();
         int nbPtDistribute = hero.getPoint_to_distribute();
-        hero = heroes.get(hero.getId());
+        hero = Hero.loadHeroById(hero.getId());
+
+        if(hero == null)
+            throw new RuntimeException("Herror while loading hero");
+
         hero.setPoint_to_distribute(nbPtDistribute);
 
         focusController.setHero(hero);
@@ -161,7 +164,7 @@ public class GameController {
         heroController.addXP(map);
         input.reload();
         rpgView.setModal(new Block_LvlComplete());
-        Hero.saveHeroes();
+        hero.saveHero();
     }
 
     private void updateGamePlay() {

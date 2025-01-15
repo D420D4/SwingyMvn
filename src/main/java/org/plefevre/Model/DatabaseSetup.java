@@ -20,9 +20,8 @@ public class DatabaseSetup {
             connection = DriverManager.getConnection(dbUrl, dbUser, dbPassword);
             System.out.println("Successfully connected to the database.");
         } catch (SQLException e) {
-            System.err.println("Error while connecting to the database: " + e.getMessage());
-            e.printStackTrace();
-            System.exit(1);
+            throw new RuntimeException("Error while connecting to database : " + e.getMessage());
+
         }
     }
 
@@ -84,7 +83,9 @@ public class DatabaseSetup {
                         lvl INT DEFAULT 1,
                         class_destination INT DEFAULT -1,
                         attack INT DEFAULT 0,
-                        defense INT DEFAULT 0
+                        defense INT DEFAULT 0,
+                        ascii VARCHAR(36),
+                        ascii_color VARCHAR(36),
                     );
                 """;
 
@@ -118,8 +119,8 @@ public class DatabaseSetup {
     }
 
     public static void createTable() {
-        createHeroTable();
         createArtifactTable();
+        createHeroTable();
         createHeroInventoryTable();
     }
 

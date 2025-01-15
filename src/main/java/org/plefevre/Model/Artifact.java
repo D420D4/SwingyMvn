@@ -43,6 +43,86 @@ public class Artifact {
         }
     }
 
+
+    public static Artifact loadArtifactById(int artifactId) {
+        Connection connection = DatabaseSetup.getConnection();
+
+        String loadArtifactQuery = "SELECT * FROM Artifact WHERE id = ?";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(loadArtifactQuery)) {
+            preparedStatement.setInt(1, artifactId);
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    return new Artifact(
+                            resultSet.getInt("id"),
+                            resultSet.getString("name"),
+                            resultSet.getInt("type"),
+                            resultSet.getInt("lvl"),
+                            resultSet.getInt("class_destination"),
+                            resultSet.getInt("attack"),
+                            resultSet.getInt("defense"),
+                            resultSet.getString("ascii"),
+                            resultSet.getString("ascii_color")
+                    );
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error while loading artifact : " + e.getMessage());
+        }
+        return null;
+    }
+
+    public void saveArtifact() {
+        Connection connection = DatabaseSetup.getConnection();
+
+        String saveArtifactQuery = """
+            INSERT INTO Artifact (id, name, type, lvl, class_destination, attack, defense, ascii, ascii_color)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE
+                name = VALUES(name),
+                type = VALUES(type),
+                lvl = VALUES(lvl),
+                class_destination = VALUES(class_destination),
+                attack = VALUES(attack),
+                defense = VALUES(defense),
+                ascii = VALUES(ascii),
+                ascii_color = VALUES(ascii_color);""";
+
+        String asciiString = new String(ascii);
+
+        StringBuilder asciiColorString = new StringBuilder();
+        for (int i = 0; i < ascii_color.length; i++) {
+            byte b = ascii_color[i];
+            asciiColorString.append(String.format("%4d", b));
+        }
+
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(saveArtifactQuery, Statement.RETURN_GENERATED_KEYS)) {
+            preparedStatement.setObject(1, getId() == 0 ? null : getId(), Types.INTEGER);
+            preparedStatement.setString(2, getName());
+            preparedStatement.setInt(3, getType());
+            preparedStatement.setInt(4, getLvl());
+            preparedStatement.setInt(5, class_destination);
+            preparedStatement.setInt(6, attack);
+            preparedStatement.setInt(7, defense);
+            preparedStatement.setString(8, asciiString);
+            preparedStatement.setString(9, asciiColorString.toString());
+
+            preparedStatement.executeUpdate();
+
+            if (getId() == 0) {
+                try (ResultSet generatedKeys = preparedStatement.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        setId(generatedKeys.getInt(1));
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error while saving artifact : " + e.getMessage());
+        }
+    }
+
+
     public Artifact() {
 
     }
@@ -326,43 +406,7 @@ public class Artifact {
         return l;
     }
 
-    public void saveArtifact() {
-        Connection connection = DatabaseSetup.getConnection();
 
-        String saveArtifactQuery = """
-            INSERT INTO Artifact (id, name, type, lvl, class_destination, attack, defense)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-            ON DUPLICATE KEY UPDATE
-                name = VALUES(name),
-                type = VALUES(type),
-                lvl = VALUES(lvl),
-                class_destination = VALUES(class_destination),
-                attack = VALUES(attack),
-                defense = VALUES(defense);""";
-
-        try (PreparedStatement preparedStatement = connection.prepareStatement(saveArtifactQuery, Statement.RETURN_GENERATED_KEYS)) {
-            preparedStatement.setObject(1, getId() == 0 ? null : getId(), Types.INTEGER);
-            preparedStatement.setString(2, getName());
-            preparedStatement.setInt(3, getType());
-            preparedStatement.setInt(4, getLvl());
-            preparedStatement.setInt(5, class_destination);
-            preparedStatement.setInt(6, attack);
-            preparedStatement.setInt(7, defense);
-            preparedStatement.executeUpdate();
-
-            if (getId() == 0) {
-                try (ResultSet generatedKeys = preparedStatement.getGeneratedKeys()) {
-                    if (generatedKeys.next()) {
-                        setId(generatedKeys.getInt(1));
-                    }
-                }
-            }
-
-            System.out.println("Artifact saved successfully.");
-        } catch (SQLException e) {
-            System.err.println("Error while saving artifact: " + e.getMessage());
-        }
-    }
 
     public class PassivEffect {
         String name;

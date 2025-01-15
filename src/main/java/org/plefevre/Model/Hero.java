@@ -8,6 +8,7 @@ import java.util.ArrayList;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
+import static org.plefevre.Model.Artifact.loadArtifactById;
 
 public class Hero {
 
@@ -63,6 +64,36 @@ public class Hero {
         this.current_helm = loadArtifactById(current_helm_id);
     }
 
+    public static Hero loadHeroById(int heroId) {
+        Connection connection = DatabaseSetup.getConnection();
+
+        String loadArtifactQuery = "SELECT * FROM Hero WHERE id = ?";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(loadArtifactQuery)) {
+            preparedStatement.setInt(1, heroId);
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    return new Hero(
+                            resultSet.getInt("id"),
+                            resultSet.getString("name"),
+                            resultSet.getString("class_name"),
+                            resultSet.getInt("lvl"),
+                            resultSet.getInt("experience"),
+                            resultSet.getInt("attack"),
+                            resultSet.getInt("defense"),
+                            resultSet.getInt("hit_point"),
+                            resultSet.getInt("current_weapon"),
+                            resultSet.getInt("current_armor"),
+                            resultSet.getInt("current_helm")
+                    );
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error while loading hero : " + e.getMessage());
+        }
+        return null;
+    }
+
     public int getAttack() {
         int att = 2 + (lvl + attack - 1) * 3;
         if (current_weapon != null) att += current_weapon.getAttack(this);
@@ -111,9 +142,9 @@ public class Hero {
             preparedStatement.setInt(6, getAttackPoint());
             preparedStatement.setInt(7, getDefensePoint());
             preparedStatement.setInt(8, getHit_point());
-            preparedStatement.setObject(9, getCurrent_weapon().getId(), Types.INTEGER);
-            preparedStatement.setObject(10, getCurrent_armor().getId(), Types.INTEGER);
-            preparedStatement.setObject(11, getCurrent_helm().getId(), Types.INTEGER);
+            preparedStatement.setObject(9, getCurrent_weapon() == null ? null : getCurrent_weapon().getId(), Types.INTEGER);
+            preparedStatement.setObject(10, getCurrent_armor() == null ? null : getCurrent_armor().getId(), Types.INTEGER);
+            preparedStatement.setObject(11, getCurrent_helm() == null ? null : getCurrent_helm().getId(), Types.INTEGER);
             preparedStatement.executeUpdate();
 
             if (getId() == 0) {
@@ -127,7 +158,7 @@ public class Hero {
             saveInventory();
 
         } catch (SQLException e) {
-
+            throw new RuntimeException("Error while saving hero : " + e.getMessage());
         }
     }
 
@@ -141,47 +172,19 @@ public class Hero {
             deleteStatement.setInt(1, getId());
             deleteStatement.executeUpdate();
         } catch (SQLException e) {
-
+            throw new RuntimeException("Error while deleting Inventory : " + e.getMessage());
         }
 
         try (PreparedStatement saveStatement = connection.prepareStatement(saveInventoryQuery)) {
             for (Artifact artifact : inventory) {
-                if(artifact == null) continue;
+                if (artifact == null) continue;
+                artifact.saveArtifact();
                 saveStatement.setInt(1, getId());
                 saveStatement.setInt(2, artifact.getId());
-                artifact.saveArtifact();
                 saveStatement.executeUpdate();
             }
         } catch (SQLException e) {
-
-        }
-    }
-
-    public static void saveHeroes() {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_SAVE))) {
-            for (Hero hero : heroes) {
-                writer.write(hero.name + "," + hero.className + "," + hero.lvl + "," +
-                        hero.experience + "," + hero.attack + "," + hero.defense + "," + hero.hit_point);
-
-                // Save current_weapon, current_armor, and current_helm
-                writer.write(",");
-                writer.write(hero.current_weapon != null ? hero.current_weapon.toString() : "null");
-                writer.write(",");
-                writer.write(hero.current_armor != null ? hero.current_armor.toString() : "null");
-                writer.write(",");
-                writer.write(hero.current_helm != null ? hero.current_helm.toString() : "null");
-
-                // Save inventory (all artifacts)
-                writer.write(",");
-                for (Artifact artifact : hero.inventory) {
-                    writer.write(artifact != null ? artifact.toString() : "null");
-                    writer.write(";");
-                }
-                writer.newLine();
-            }
-        } catch (IOException e) {
-            System.err.println("Error while saving heroes : " + e.getMessage());
-            System.exit(1);
+            throw new RuntimeException("Error while saving Inventory : " + e.getMessage());
         }
     }
 
@@ -211,7 +214,7 @@ public class Hero {
             }
             System.out.println("Heroes loaded successfully.");
         } catch (SQLException e) {
-            System.err.println("Error while loading heroes: " + e.getMessage());
+            throw new RuntimeException("Error loading heroes : " + e.getMessage());
         }
     }
 
@@ -230,36 +233,8 @@ public class Hero {
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Error while loading hero inventory: " + e.getMessage());
+            throw new RuntimeException("Error while loading Inventory : " + e.getMessage());
         }
-    }
-
-    public static Artifact loadArtifactById(int artifactId) {
-        Connection connection = DatabaseSetup.getConnection();
-
-        String loadArtifactQuery = "SELECT * FROM Artifact WHERE id = ?";
-
-        try (PreparedStatement preparedStatement = connection.prepareStatement(loadArtifactQuery)) {
-            preparedStatement.setInt(1, artifactId);
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                if (resultSet.next()) {
-                    return new Artifact(
-                            resultSet.getInt("id"),
-                            resultSet.getString("name"),
-                            resultSet.getInt("type"),
-                            resultSet.getInt("lvl"),
-                            resultSet.getInt("class_destination"),
-                            resultSet.getInt("attack"),
-                            resultSet.getInt("defense"),
-                            resultSet.getString("ascii"),
-                            resultSet.getString("ascii_color")
-                    );
-                }
-            }
-        } catch (SQLException e) {
-            System.err.println("Error while loading artifact: " + e.getMessage());
-        }
-        return null;
     }
 
 
@@ -268,11 +243,6 @@ public class Hero {
         return heroes;
     }
 
-    public static void addHero(Hero newHero) {
-        newHero.setId(heroes.size());
-        heroes.add(newHero);
-        saveHeroes();
-    }
 
     public void setName(String name) {
         this.name = name.replaceAll(",", "");

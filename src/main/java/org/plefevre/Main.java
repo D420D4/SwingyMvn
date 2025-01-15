@@ -32,8 +32,8 @@ public class Main {
         Input input = new Input();
 
         Hero chosenHero;
-        chosenHero = Hero.loadHeroById(2);
-/*
+//        chosenHero = Hero.loadHeroById(2);
+
         if (guiMode) {
             MenuController menuController = new MenuController(new Menu_Choose_Hero_GUI());
             chosenHero = menuController.runMenuGui();
@@ -41,7 +41,7 @@ public class Main {
             MenuController menuController = new MenuController(new Menu_Choose_Hero(input), input);
             chosenHero = menuController.runMenuConsole();
         }
-*/
+
         if (chosenHero == null) {
             System.out.println("No hero selected. Exiting.");
             return;

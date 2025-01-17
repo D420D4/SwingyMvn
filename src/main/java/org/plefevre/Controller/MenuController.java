@@ -1,11 +1,17 @@
 package org.plefevre.Controller;
 
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
 import org.plefevre.View.Input;
 import org.plefevre.Model.Hero;
 import org.plefevre.View.Menu_Choose_Hero;
 import org.plefevre.View.Menu_Choose_Hero_GUI;
 
+import java.awt.event.ActionEvent;
 import java.util.ArrayList;
+import java.util.Set;
 
 public class MenuController {
 
@@ -42,39 +48,7 @@ public class MenuController {
             menuView_gui.setView("CREATE_HERO");
         });
 
-        menuView_gui.addGenerateButtonListener(e -> {
-
-            String name = menuView_gui.getCreateHeroName();
-            String className = menuView_gui.getCreateHeroClass();
-            int attack = menuView_gui.getCreateHeroAttack();
-            int defense = menuView_gui.getCreateHeroDefense();
-            int hitPoints = menuView_gui.getCreateHeroHitPoints();
-
-            if (name.isEmpty()) {
-                menuView_gui.showError("Please fill in all fields.");
-                return;
-            }
-
-            if (attack + defense + hitPoints > 5) {
-                menuView_gui.showError("You have used more than 5 points. Please try again.");
-                return;
-            } else if (attack + defense + hitPoints < 5) {
-                menuView_gui.showError("You have used less than 5 points. Please try again.");
-                return;
-            }
-
-
-            Hero newHero = new Hero(name, className);
-            newHero.setAttack(attack);
-            newHero.setDefense(defense);
-            newHero.setHit_point(hitPoints);
-            newHero.saveHero();
-
-            menuView_gui.showSuccess("Hero created successfully.");
-
-
-            menuView_gui.setView("MENU");
-        });
+        menuView_gui.addGenerateButtonListener(this::actionPerformed);
 
         menuView_gui.addSelectButtonListener(e -> {
             int index = menuView_gui.getHeroIdSelected();
@@ -83,7 +57,7 @@ public class MenuController {
                 synchronized (lock) {
                     lock.notify();
                 }
-            }else {
+            } else {
                 menuView_gui.showError("Invalid choice. Please select a valid Hero.");
             }
         });
@@ -142,8 +116,9 @@ public class MenuController {
         boolean isValidName;
 
         do {
-            heroName = menuView.readLine("Please enter a name for your hero (letters and numbers only): ");
+            heroName = menuView.readLine("Please enter a name for your hero (letters and numbers only and between 3 and 15 characters) : ");
             isValidName = heroName.matches("[a-zA-Z0-9]+");
+            isValidName = isValidName && heroName.length() >= 3 && heroName.length() <= 15;
 
             if (!isValidName) {
                 menuView.displayMessage("Invalid name. Please use only letters and numbers.");
@@ -177,6 +152,20 @@ public class MenuController {
         newHero.setDefense(defense);
         newHero.setHit_point(hitPoints);
 
+        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+        Validator validator = factory.getValidator();
+        Set<ConstraintViolation<Hero>> violations = validator.validate(newHero);
+
+        // Affichage des erreurs
+        if (!violations.isEmpty()) {
+            String err = "Errors, input not valid :";
+            for (ConstraintViolation<Hero> violation : violations) err += " - " + violation.getMessage();
+
+            System.err.println(err);
+            System.exit(1);
+        }
+
+
         newHero.displayHero();
 
         newHero.saveHero();
@@ -185,5 +174,41 @@ public class MenuController {
 
     public Hero getSelectedHero() {
         return selectedHero;
+    }
+
+    private void actionPerformed(ActionEvent e) {
+
+        String name = menuView_gui.getCreateHeroName();
+        String className = menuView_gui.getCreateHeroClass();
+        int attack = menuView_gui.getCreateHeroAttack();
+        int defense = menuView_gui.getCreateHeroDefense();
+        int hitPoints = menuView_gui.getCreateHeroHitPoints();
+
+
+        Hero newHero = new Hero(name, className);
+        newHero.setAttack(attack);
+        newHero.setDefense(defense);
+        newHero.setHit_point(hitPoints);
+
+        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+        Validator validator = factory.getValidator();
+        Set<ConstraintViolation<Hero>> violations = validator.validate(newHero);
+
+        // Affichage des erreurs
+        if (!violations.isEmpty()) {
+            String err = "Errors, input not valid :";
+            for (ConstraintViolation<Hero> violation : violations) err += "\n - " + violation.getMessage();
+
+            menuView_gui.showError(err);
+            return;
+        }
+
+        newHero.saveHero();
+
+
+        menuView_gui.showSuccess("Hero created successfully.");
+
+
+        menuView_gui.setView("MENU");
     }
 }

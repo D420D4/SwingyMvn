@@ -7,6 +7,8 @@ import org.plefevre.Model.Log;
 import org.plefevre.View.*;
 
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static org.plefevre.Model.DatabaseSetup.*;
 

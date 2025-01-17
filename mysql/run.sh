@@ -5,13 +5,13 @@ COMMAND=$1
 # Nom du conteneur MySQL
 CONTAINER_NAME="mysql_container"
 
-if [ ! -f .env ]; then
+if [ ! -f ../.env ]; then
   echo "Error: .env file not found. Please create it and define the necessary variables."
   exit 1
 fi
 
 # Charger les variables d'environnement depuis .env
-export $(grep -v '^#' .env | xargs)
+export $(grep -v '^#' ../.env | xargs)
 
 case $COMMAND in
   start)
@@ -85,8 +85,14 @@ case $COMMAND in
       echo "Error: MySQL container is not running."
     fi
     ;;
-  *)
-    echo "Usage: $0 {start|stop|status|logs|show-db|show-all|clear-db|query}"
-    exit 1
-    ;;
+  clean)
+      echo "Stopping and removing MySQL container and volumes..."
+      docker-compose down -v
+      docker volume prune -f
+      echo "All traces of the MySQL container and its volumes have been removed."
+      ;;
+    *)
+      echo "Usage: $0 {start|stop|status|logs|show-db|show-all|clear-db|query|clean}"
+      exit 1
+      ;;
 esac

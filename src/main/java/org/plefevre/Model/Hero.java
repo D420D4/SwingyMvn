@@ -1,5 +1,10 @@
 package org.plefevre.Model;
 
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+import org.plefevre.Controller.ValidSum;
+
 import java.sql.*;
 import java.util.ArrayList;
 
@@ -7,6 +12,7 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static org.plefevre.Model.Artifact.loadArtifactById;
 
+@ValidSum
 public class Hero {
 
     public final static int INVENTORY_SIZE = 10;
@@ -15,7 +21,11 @@ public class Hero {
     final static int CLASS_MAGE = 1;
     final static int CLASS_ARCHER = 2;
 
+    @NotNull
+    @Size(min = 3, max = 15)
+    @Pattern(regexp = "^[a-zA-Z0-9]+$")
     private String name;
+
     private String className;
     private int id;
     private int lvl = 1;

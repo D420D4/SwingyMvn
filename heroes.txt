@@ -1,1 +1,0 @@
-test,Warrior,1,0,2,2,1,null,null,null,null;null;null;null;null;null;null;null;null;null;

@@ -17,7 +17,16 @@ Pour compiler et générer un JAR exécutable, exécutez :
 mvn clean package
 ```
 
-### 2. Exécution
+### 2. Lancement de la bdd
+
+
+```bash
+cd mysql
+./run.sh start
+```
+
+
+### 3. Exécution
 
 Une fois la compilation terminée, le JAR exécutable sera disponible (par exemple dans le dossier `target/`).  
 Vous pouvez alors lancer le jeu de la manière suivante :
